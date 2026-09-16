@@ -127,7 +127,7 @@ def main() -> None:
     for t in texts[:20]:
         build_card(t, clf_full); n += 1
     lat = (time.perf_counter() - t0) / max(n, 1) * 1000
-    print(f"[latency]      build_card ≈ {lat:.0f} ms/submission (laptop CPU)")
+    print(f"[latency]      build_card ~ {lat:.0f} ms/submission (laptop CPU)")
 
     result = {
         "run_date": run_date, "corpus": os.path.basename(args.corpus), "dev_seed": is_seed,

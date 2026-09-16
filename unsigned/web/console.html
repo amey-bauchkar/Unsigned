@@ -4,163 +4,867 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Unsigned — committee</title>
+<title>Unsigned — committee console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="/app.css">
 <style>
-  body { overflow-x:hidden; }
-  .shell { display:grid; grid-template-columns:232px 1fr; min-height:100vh; }
-  aside { background:var(--surface); border-right:1px solid var(--rule); padding:1.1rem .9rem; display:flex; flex-direction:column; gap:.2rem; position:sticky; top:0; height:100vh; }
-  .brand { font:800 .78rem var(--ui); letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); padding:.3rem .6rem 1rem; }
-  .brand small { display:block; font:500 .72rem var(--ui); letter-spacing:0; text-transform:none; color:var(--muted); margin-top:.15rem; }
-  aside nav button { display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; background:none; border:0; border-radius:10px; padding:.6rem .7rem; color:var(--muted); font-weight:700; }
-  aside nav button.on { background:var(--surface-2); color:var(--ink); }
-  aside nav button .ico { width:20px; text-align:center; font-family:var(--mono); color:var(--accent); }
-  aside nav button .cnt { margin-left:auto; font:600 .7rem var(--mono); color:var(--bad); }
-  aside .foot { margin-top:auto; display:grid; gap:.4rem; }
-  aside .foot button { width:100%; }
-  .content { padding:1.4rem 1.8rem 4rem; min-width:0; }
-  .pagehead { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
-  .pagehead h1 { font-size:1.45rem; font-weight:800; letter-spacing:-.01em; }
-  .pagehead p { color:var(--muted); margin:.2rem 0 0; max-width:70ch; }
-  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:.9rem; margin-bottom:1.1rem; }
-  .kpis .tile .delta { font-size:.8rem; color:var(--muted); }
-  .kpis .tile.hot { border-color:var(--bad); }
-  .two { display:grid; grid-template-columns:3fr 2fr; gap:1rem; margin-bottom:1rem; }
-  .blockhead { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-bottom:.6rem; }
-  .blockhead h2 { font-size:.95rem; font-weight:800; }
-  .blockhead span { font-size:.8rem; color:var(--muted); }
-  /* heat grid */
-  .heat { display:grid; gap:4px; font-size:.75rem; }
-  .heat .hc { display:grid; grid-template-columns:110px repeat(5,1fr); gap:4px; align-items:center; }
-  .heat .rl { color:var(--muted); text-align:right; padding-right:.4rem; text-transform:capitalize; }
-  .heat .cell { height:34px; border-radius:6px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font:600 .78rem var(--mono); color:var(--ink); cursor:pointer; border:1px solid transparent; transition:transform .12s; }
-  .heat .cell:hover { transform:scale(1.04); border-color:var(--accent); }
-  .heat .cell.sup { color:var(--muted); font-weight:500; }
-  .heat .ch { color:var(--muted); text-align:center; text-transform:capitalize; }
-  .legend { display:flex; gap:.8rem; align-items:center; font-size:.75rem; color:var(--muted); margin-top:.6rem; flex-wrap:wrap; }
-  .legend i { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:middle; margin-right:.3rem; }
-  /* alerts */
-  .alert { border-left:4px solid var(--bad); }
-  .alert h3 { font-size:1rem; font-weight:800; }
-  .alert .meta { font:500 .75rem var(--mono); color:var(--muted); margin:.3rem 0 .5rem; }
-  .alert p { margin:.3rem 0; }
-  /* sparkline */
-  .spark { display:flex; align-items:flex-end; gap:6px; height:90px; padding:.4rem 0 0; }
-  .spark div { flex:1; background:var(--accent-wash); border-radius:4px 4px 0 0; position:relative; min-height:3px; }
-  .spark div.now { background:var(--accent); }
-  .spark div span { position:absolute; bottom:-1.3rem; left:0; right:0; text-align:center; font:500 .65rem var(--mono); color:var(--muted); }
-  /* needs-you list */
-  .need { display:grid; gap:.5rem; }
-  .need button { display:grid; grid-template-columns:auto 1fr auto; gap:.7rem; align-items:center; text-align:left; background:var(--surface-2); border:1px solid transparent; border-radius:10px; padding:.55rem .7rem; color:var(--ink); font-weight:500; }
-  .need button:hover { border-color:var(--accent); }
-  .need .t { font-size:.9rem; }
-  .need .d { font:500 .7rem var(--mono); color:var(--muted); }
-  /* cases */
-  .chips { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.8rem; align-items:center; }
-  .chips button { border-radius:999px; padding:.3rem .8rem; font-size:.82rem; }
-  .chips button.on { background:var(--accent-wash); }
-  .chips input { width:auto; max-width:220px; padding:.35rem .7rem; border-radius:999px; font-size:.85rem; }
+  /* Layout Shell */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    transition: grid-template-columns .25s var(--ease);
+  }
+  .shell.collapsed {
+    grid-template-columns: 74px 1fr;
+  }
+  
+  /* Sidebar Navigation */
+  aside {
+    background: var(--surface);
+    border-right: 1px solid var(--rule);
+    padding: 1.3rem .9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-shadow: 2px 0 10px rgba(31,29,26,0.02);
+    transition: padding .25s var(--ease), width .25s var(--ease);
+    z-index: 15;
+  }
+  .shell.collapsed aside {
+    padding: 1.3rem .55rem;
+  }
+
+  /* Sidebar Toggle Button on Edge */
+  .sidebar-toggle {
+    position: absolute;
+    right: -13px;
+    top: 22px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    box-shadow: 0 2px 8px rgba(31,29,26,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 0;
+    z-index: 20;
+    transition: all .2s var(--ease);
+  }
+  .sidebar-toggle:hover {
+    background: var(--accent-wash);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    transform: scale(1.12);
+  }
+  .sidebar-toggle svg {
+    transition: transform .25s var(--ease);
+  }
+  .shell.collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  /* Brand */
+  .brand {
+    font: 800 .8rem var(--ui);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    padding: .4rem .6rem 1.2rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: .6rem;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .brand small {
+    display: block;
+    font: 500 .72rem var(--ui);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--muted);
+    margin-top: .25rem;
+  }
+  .brand-text {
+    transition: opacity .2s var(--ease);
+  }
+  .brand-mini {
+    display: none;
+    font: 800 1.15rem/1 var(--ui);
+    color: var(--accent-ink);
+    text-align: center;
+  }
+  .shell.collapsed .brand {
+    padding: .4rem .2rem 1.2rem;
+    text-align: center;
+  }
+  .shell.collapsed .brand-text {
+    display: none;
+  }
+  .shell.collapsed .brand-mini {
+    display: block;
+  }
+
+  /* Navigation buttons */
+  aside nav {
+    display: grid;
+    gap: .35rem;
+  }
+  aside nav button {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: .65rem .8rem;
+    color: var(--muted);
+    font: 700 .9rem var(--ui);
+    transition: all .15s var(--ease);
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  aside nav button:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  aside nav button.on {
+    background: var(--accent-wash);
+    color: var(--accent-ink);
+    border-color: rgba(31,111,120,0.18);
+    font-weight: 800;
+  }
+  aside nav button .ico-svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--accent);
+    display: inline-block;
+  }
+  aside nav button .nav-text {
+    flex: 1;
+    transition: opacity .2s var(--ease);
+  }
+  aside nav button .cnt {
+    margin-left: auto;
+    font: 700 .72rem var(--num);
+    color: var(--bad);
+    background: var(--bad-wash);
+    padding: .15em .55em;
+    border-radius: 999px;
+    transition: all .2s;
+  }
+
+  /* Collapsed Navigation State */
+  .shell.collapsed aside nav button {
+    justify-content: center;
+    padding: .65rem 0;
+    gap: 0;
+  }
+  .shell.collapsed aside nav button .nav-text {
+    display: none;
+  }
+  .shell.collapsed aside nav button .cnt {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    margin: 0;
+    padding: 0 .35em;
+    min-width: 16px;
+    text-align: center;
+  }
+  .shell.collapsed aside nav button .cnt:empty {
+    display: none;
+  }
+
+  /* Sidebar footer */
+  aside .foot {
+    margin-top: auto;
+    display: grid;
+    gap: .45rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  aside .foot button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  aside .foot button .ico-svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  aside .foot button .btn-text {
+    transition: opacity .2s var(--ease);
+  }
+  .shell.collapsed aside .foot button {
+    padding: .65rem 0;
+    justify-content: center;
+    gap: 0;
+  }
+  .shell.collapsed aside .foot button .btn-text {
+    display: none;
+  }
+
+  /* Content Area */
+  .content { padding: 1.8rem 2.2rem 5rem; min-width: 0; transition: padding .25s var(--ease); }
+  .pagehead {
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:1.2rem;
+    margin-bottom:1.5rem;
+    flex-wrap:wrap;
+  }
+  .pagehead h1 {
+    font:500 2.2rem/1.1 var(--serif);
+    letter-spacing:-.015em;
+    color:var(--ink);
+  }
+  .pagehead h1 em {
+    font-style:italic;
+    color:var(--accent-ink);
+  }
+  .pagehead p {
+    font:400 1.05rem/1.5 var(--serif);
+    color:var(--muted);
+    margin:.35rem 0 0;
+    max-width:68ch;
+  }
+  
+  /* KPI Stat Cards */
+  .kpis {
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+    margin-bottom:1.3rem;
+  }
+  .tile {
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:1.15rem 1.25rem;
+    display:grid;
+    gap:.35rem;
+    align-content:start;
+    box-shadow:0 1px 3px rgba(31,29,26,0.03);
+    transition:transform .15s var(--ease), box-shadow .15s, border-color .15s;
+  }
+  .tile:hover {
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(31,29,26,0.06);
+    border-color:var(--rule-strong);
+  }
+  .tile .delta {
+    font-size:.82rem;
+    color:var(--muted);
+    line-height:1.35;
+  }
+  .tile.hot {
+    border-color:var(--bad);
+    background:linear-gradient(135deg, var(--surface) 60%, var(--bad-wash) 100%);
+  }
+  .big {
+    font:600 2.2rem/1.05 var(--num);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+    color:var(--ink);
+  }
+  
+  /* Grid & Block layouts */
+  .two { display:grid; grid-template-columns:3fr 2fr; gap:1.1rem; margin-bottom:1.1rem; }
+  .card {
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:1.25rem 1.35rem;
+    box-shadow:0 1px 3px rgba(31,29,26,0.03);
+  }
+  .blockhead {
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:1rem;
+    margin-bottom:.8rem;
+    padding-bottom:.5rem;
+    border-bottom:1px solid var(--rule);
+  }
+  .blockhead h2 {
+    font:600 1.2rem/1.2 var(--serif);
+    color:var(--ink);
+  }
+  .blockhead span {
+    font:500 .8rem var(--num);
+    color:var(--muted);
+  }
+
+  /* Heat Grid */
+  .heat { display:grid; gap:6px; font-size:.78rem; margin-top:.5rem; width:100%; }
+  .heat .hc { display:grid; grid-template-columns:130px repeat(5,1fr); gap:6px; align-items:center; }
+  .heat .rl { color:var(--muted); text-align:right; padding-right:.6rem; text-transform:capitalize; font:600 .8rem var(--ui); }
+  .heat .cell {
+    height:36px;
+    border-radius:8px;
+    background:var(--surface-2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font:700 .84rem var(--num);
+    color:var(--ink);
+    cursor:pointer;
+    border:1px solid var(--rule);
+    transition:transform .15s var(--ease), box-shadow .15s, border-color .15s;
+  }
+  .heat .cell:hover {
+    transform:scale(1.04);
+    border-color:var(--accent);
+    box-shadow:0 4px 12px rgba(31,111,120,0.22);
+    z-index:2;
+  }
+  .heat .cell.sup { color:var(--muted); font-weight:500; opacity:.75; }
+  .heat .ch { color:var(--muted); text-align:center; text-transform:capitalize; font:700 .72rem var(--ui); }
+  .legend { display:flex; gap:.9rem; align-items:center; font:500 .78rem var(--ui); color:var(--muted); margin-top:.9rem; flex-wrap:wrap; padding-top:.6rem; border-top:1px dashed var(--rule); }
+  .legend i { display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:middle; margin-right:.35rem; border:1px solid rgba(0,0,0,0.06); }
+
+  /* Rising Patterns Horizontal Carousel */
+  .patterns-section {
+    margin-bottom: 1.1rem;
+  }
+  .alerts-carousel-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  .alerts-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: .2rem .1rem .4rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+    width: 100%;
+  }
+  .alerts-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .alerts-scroll::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border-radius: 999px;
+  }
+  .alerts-scroll .alert {
+    flex: 0 0 380px;
+    min-width: 320px;
+    max-width: 440px;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .alerts-scroll .empty-card {
+    flex: 1;
+    width: 100%;
+  }
+  .carousel-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    color: var(--ink);
+    font: 700 1.1rem var(--ui);
+    cursor: pointer;
+    transition: all .15s var(--ease);
+    padding: 0;
+    line-height: 1;
+  }
+  .carousel-btn:hover {
+    background: var(--accent-wash);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    transform: scale(1.08);
+  }
+
+  /* Alerts */
+  .alert {
+    border: 1px solid rgba(201, 70, 58, 0.25);
+    border-left: 4px solid var(--bad);
+    background: var(--bad-wash);
+    border-radius: 0 12px 12px 0;
+    padding: 1rem 1.15rem;
+  }
+  .alert h3 { font:600 1.15rem/1.25 var(--serif); color:var(--ink); margin:0; }
+  .alert .meta { font:600 .78rem var(--num); color:var(--bad); margin:.35rem 0 .5rem; }
+  .alert p { font:400 .95rem/1.45 var(--serif); color:var(--ink); margin:.4rem 0; }
+
+  /* Sparkline Widget */
+  .spark-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .spark-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 150px;
+    margin: .6rem 0 .2rem;
+  }
+  .spark {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 100%;
+    min-height: 140px;
+    border-bottom: 2px solid var(--rule-strong);
+    padding: 1.6rem 4px 2px;
+  }
+  .spark div {
+    flex: 1;
+    background: #D7EBED;
+    border: 1px solid rgba(31,111,120,0.22);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    position: relative;
+    min-height: 8px;
+    transition: height .5s var(--ease), background .2s, transform .15s;
+    cursor: pointer;
+  }
+  .spark div:hover {
+    background: #B6DEE2;
+    transform: scaleY(1.03);
+    transform-origin: bottom;
+  }
+  .spark div.now {
+    background: var(--accent);
+    border-color: var(--accent-ink);
+    box-shadow: 0 4px 14px rgba(31,111,120,0.28);
+  }
+  .spark div .bar-num {
+    position: absolute;
+    top: -1.35rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font: 700 .82rem var(--num);
+    color: var(--ink);
+    user-select: none;
+  }
+  .spark div.now .bar-num {
+    color: var(--accent-ink);
+    font-weight: 800;
+  }
+  .spark-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .75rem;
+    margin-top: .9rem;
+    padding-top: .9rem;
+    border-top: 1px dashed var(--rule);
+  }
+  .stat-pill {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: .55rem .75rem;
+    display: grid;
+    gap: .15rem;
+  }
+  .stat-label {
+    font: 700 .62rem var(--ui);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .stat-value {
+    font: 700 1.25rem/1.1 var(--num);
+    color: var(--ink);
+  }
+
+  /* Needs-you List */
+  .need { display:grid; gap:.55rem; }
+  .need button {
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:.8rem;
+    align-items:center;
+    text-align:left;
+    background:var(--surface-2);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:.65rem .85rem;
+    color:var(--ink);
+    font-weight:500;
+    transition:all .15s var(--ease);
+  }
+  .need button:hover {
+    background:var(--accent-wash);
+    border-color:var(--accent);
+    transform:translateX(3px);
+  }
+  .need .t { font:500 .92rem var(--ui); }
+  .need .d { font:700 .78rem var(--num); color:var(--muted); }
+
+  /* Cases Toolbar & Table */
+  .chips { display:flex; gap:.45rem; flex-wrap:wrap; margin-bottom:1rem; align-items:center; }
+  .chips button {
+    background:var(--surface);
+    border:1px solid var(--rule-strong);
+    border-radius:999px;
+    padding:.35rem .85rem;
+    font:600 .82rem var(--ui);
+    color:var(--muted);
+    transition:all .15s;
+  }
+  .chips button:hover {
+    border-color:var(--accent);
+    color:var(--ink);
+  }
+  .chips button.on {
+    background:var(--accent);
+    color:#FFFFFF;
+    border-color:var(--accent);
+  }
+  .chips input {
+    width:auto;
+    min-width:240px;
+    padding:.45rem 1rem;
+    border-radius:999px;
+    font:400 .88rem var(--ui);
+    background:var(--surface);
+    border:1px solid var(--rule-strong);
+  }
+  
+  table.cases { border-collapse:collapse; width:100%; }
+  table.cases th {
+    background:var(--surface-2);
+    padding:.75rem .9rem;
+    font:700 .68rem var(--ui);
+    letter-spacing:.1em;
+    color:var(--muted);
+    border-bottom:1px solid var(--rule-strong);
+  }
+  table.cases td {
+    padding:.8rem .9rem;
+    border-bottom:1px solid var(--rule);
+    transition:background .12s;
+  }
   table.cases tr { cursor:pointer; }
   table.cases tr:hover td { background:var(--surface-2); }
   table.cases tr.sel td { background:var(--accent-wash); }
-  table.cases td.what { max-width:320px; }
-  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(560px, 100vw); background:var(--surface); border-left:1px solid var(--rule); box-shadow:-20px 0 60px rgba(0,0,0,.35); transform:translateX(100%); transition:transform .3s var(--ease); z-index:20; overflow-y:auto; padding:1.2rem 1.4rem 3rem; }
+  table.cases td.what { max-width:340px; font:500 .95rem var(--serif); color:var(--ink); }
+
+  /* Case Detail Drawer */
+  .drawer {
+    position:fixed;
+    top:0;
+    right:0;
+    bottom:0;
+    width:min(580px, 100vw);
+    background:var(--surface);
+    border-left:1px solid var(--rule-strong);
+    box-shadow:-16px 0 45px rgba(31,29,26,0.12);
+    transform:translateX(100%);
+    transition:transform .3s var(--ease);
+    z-index:40;
+    overflow-y:auto;
+    padding:1.4rem 1.6rem 3.5rem;
+  }
   .drawer.open { transform:none; }
-  .drawer .close { position:absolute; top:.9rem; right:.9rem; }
-  .drawer h2 { font-size:1.1rem; font-weight:800; margin:.2rem 0 .2rem; padding-right:3rem; }
-  .drawer .narr { font-size:1.02rem; line-height:1.55; margin:.6rem 0 .2rem; }
-  .why { font-size:.85rem; color:var(--muted); margin:.5rem 0; }
-  .why b { color:var(--ink); font-family:var(--mono); font-weight:600; background:var(--code); padding:.05em .35em; border-radius:4px; }
-  .audit { background:var(--surface-2); border-radius:12px; padding:.8rem .9rem; margin:.9rem 0; }
+  .drawer .close { position:absolute; top:1rem; right:1rem; }
+  .drawer h2 { font:500 1.6rem/1.2 var(--serif); margin:.3rem 0 .3rem; padding-right:3rem; color:var(--ink); }
+  .drawer .narrbox {
+    background:var(--surface-2);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:.95rem 1.1rem;
+    margin:.8rem 0;
+  }
+  .drawer .narr { font:400 1.08rem/1.55 var(--serif); color:var(--ink); margin:0; }
+  .why { font-size:.85rem; color:var(--muted); margin:.6rem 0; line-height:1.45; }
+  .why b { color:var(--ink); font-family:var(--mono); font-weight:600; background:var(--code); padding:.1em .4em; border-radius:4px; }
+  
+  .audit {
+    background:var(--accent-wash);
+    border:1px solid rgba(31,111,120,0.2);
+    border-radius:14px;
+    padding:1rem 1.15rem;
+    margin:1rem 0;
+  }
   .audit .row { justify-content:space-between; }
-  .audit .val { font:600 1.4rem var(--mono); }
-  .fchips { display:grid; gap:.35rem; margin:.4rem 0 .2rem; }
-  .fgrp { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; }
+  .audit .val { font:700 1.35rem var(--num); color:var(--accent-ink); }
+  
+  .fchips { display:grid; gap:.4rem; margin:.5rem 0 .3rem; }
+  .fgrp { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
   .fgrp .k { font:700 .62rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); min-width:120px; }
-  .chip { display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--rule-strong); background:var(--surface-2); border-radius:999px; padding:.2rem .6rem; font-size:.82rem; }
-  .chip.gen { border-color:var(--warn); background:var(--warn-wash); }
-  .chip em { font:600 .68rem var(--mono); color:var(--warn); font-style:normal; }
-  .thread { border-left:2px solid var(--rule-strong); padding-left:.9rem; margin:.8rem 0; display:grid; gap:.6rem; }
-  .thread .item { font-size:.9rem; }
-  .thread .who { font:700 .65rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:block; }
-  .drawer textarea { min-height:80px; }
-  /* privacy proof */
-  .stepper { display:grid; grid-template-columns:repeat(7,1fr); gap:.5rem; margin:.4rem 0 1rem; }
-  .stepper div { background:var(--surface-2); border-radius:10px; padding:.7rem .75rem; font-size:.82rem; position:relative; }
-  .stepper div b { display:block; font-size:.85rem; margin-bottom:.15rem; }
-  .stepper div em { font:600 .72rem var(--mono); color:var(--accent-ink); font-style:normal; display:block; margin-top:.3rem; }
+  .chip {
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    border:1px solid var(--rule-strong);
+    background:var(--surface);
+    border-radius:999px;
+    padding:.22rem .65rem;
+    font-size:.82rem;
+    font-family:var(--ui);
+    color:var(--ink);
+  }
+  .chip.gen { border-color:var(--warn); background:var(--warn-wash); color:#7A4E00; }
+  .chip em { font:600 .7rem var(--num); color:var(--warn); font-style:normal; }
+  
+  .thread {
+    border-left:2px solid var(--rule-strong);
+    padding-left:.9rem;
+    margin:.8rem 0 1rem;
+    display:grid;
+    gap:.6rem;
+  }
+  .thread .item {
+    font:400 .98rem/1.45 var(--serif);
+    background:var(--surface-2);
+    padding:.7rem .9rem;
+    border-radius:8px;
+    border:1px solid var(--rule);
+  }
+  .thread .item.muted {
+    background:transparent;
+    border:none;
+    padding:.2rem 0;
+    font:400 .9rem var(--ui);
+    color:var(--muted);
+  }
+  .thread .who {
+    font:700 .65rem var(--ui);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--accent-ink);
+    display:block;
+    margin-bottom:.25rem;
+  }
+  .drawer textarea { min-height:85px; font:400 1.05rem/1.5 var(--serif); border-radius:12px; }
+
+  /* Privacy Proof */
+  .stepper { display:grid; grid-template-columns:repeat(7,1fr); gap:.55rem; margin:.6rem 0 1.2rem; }
+  .stepper div {
+    background:var(--surface-2);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:.8rem .85rem;
+    font-size:.82rem;
+    position:relative;
+    transition:transform .15s;
+  }
+  .stepper div:hover { transform:translateY(-2px); border-color:var(--rule-strong); }
+  .stepper div b { display:block; font:700 .88rem var(--ui); margin-bottom:.2rem; color:var(--ink); }
+  .stepper div em { font:600 .72rem var(--num); color:var(--accent-ink); font-style:normal; display:block; margin-top:.4rem; }
   .stepper div.last { background:var(--ok-wash); border:1px solid var(--ok); }
-  .bars { display:grid; gap:.6rem; margin:.6rem 0; }
-  .bar { display:grid; grid-template-columns:230px 1fr 60px; gap:.8rem; align-items:center; font-size:.88rem; }
-  .bar .track { position:relative; height:16px; background:var(--code); border-radius:8px; overflow:visible; }
-  .bar .track i { display:block; height:100%; border-radius:8px; width:0; transition:width .9s var(--ease); }
-  .bar .track .chance { position:absolute; top:-5px; bottom:-5px; width:2px; background:var(--warn); }
-  .bar .v { font:600 .95rem var(--mono); text-align:right; }
-  .ablate { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; }
-  .try textarea { min-height:60px; }
-  .warnbox { border:1px solid var(--warn); background:var(--warn-wash); border-radius:10px; padding:.6rem .9rem; font-size:.9rem; margin-bottom:1rem; }
-  .login { max-width:420px; margin:14vh auto; }
-  .toast { position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--ground); padding:.6rem 1rem; border-radius:10px; font-weight:700; opacity:0; transition:all .25s var(--ease); z-index:30; }
-  .toast.show { opacity:1; transform:translateX(-50%); }
-  @media (max-width:960px) { .shell { grid-template-columns:1fr; } aside { position:static; height:auto; flex-direction:row; flex-wrap:wrap; } aside .foot { margin:0 0 0 auto; } .kpis { grid-template-columns:repeat(2,1fr); } .two { grid-template-columns:1fr; } .stepper { grid-template-columns:repeat(2,1fr); } .ablate { grid-template-columns:1fr; } .bar { grid-template-columns:1fr; } }
+  .stepper div.last b { color:var(--ok); }
+
+  .bars { display:grid; gap:.8rem; margin:.8rem 0; }
+  .bar { display:grid; grid-template-columns:240px 1fr 65px; gap:.9rem; align-items:center; font:500 .9rem var(--ui); }
+  .bar .track { position:relative; height:18px; background:var(--code); border-radius:9px; overflow:visible; }
+  .bar .track i { display:block; height:100%; border-radius:9px; width:0; transition:width .9s var(--ease); }
+  .bar .track .chance { position:absolute; top:-6px; bottom:-6px; width:2px; background:var(--warn); border-radius:1px; }
+  .bar .v { font:700 1rem var(--num); text-align:right; color:var(--ink); }
+
+  .ablate { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  .try textarea { min-height:65px; font:400 .98rem/1.5 var(--serif); }
+  .warnbox {
+    border:1px solid var(--warn);
+    background:var(--warn-wash);
+    border-radius:12px;
+    padding:.75rem 1.1rem;
+    font-size:.92rem;
+    color:#7A4E00;
+    margin-bottom:1.2rem;
+  }
+
+  /* Login Card */
+  .login {
+    max-width:440px;
+    margin:14vh auto;
+    padding:2.2rem 2.4rem;
+    border-radius:16px;
+    box-shadow:0 10px 35px rgba(31,29,26,0.08);
+  }
+
+  /* Toast Notification */
+  .toast {
+    position:fixed;
+    bottom:1.5rem;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:var(--surface);
+    padding:.65rem 1.2rem;
+    border-radius:999px;
+    font:600 .88rem var(--ui);
+    box-shadow:0 8px 24px rgba(31,29,26,0.2);
+    opacity:0;
+    transition:all .25s var(--ease);
+    z-index:50;
+    pointer-events:none;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:960px) {
+    .shell, .shell.collapsed { grid-template-columns:1fr; }
+    .sidebar-toggle { display: none; }
+    aside { position:static; height:auto; flex-direction:row; flex-wrap:wrap; box-shadow:none; border-bottom:1px solid var(--rule); }
+    aside .foot { margin:0 0 0 auto; border-top:none; padding-top:0; }
+    .kpis { grid-template-columns:repeat(2,1fr); }
+    .two { grid-template-columns:1fr; }
+    .stepper { grid-template-columns:repeat(2,1fr); }
+    .ablate { grid-template-columns:1fr; }
+    .bar { grid-template-columns:1fr; }
+  }
 </style>
 </head>
-<body class="console">
+<body class="student">
 <div id="login" class="login card hidden">
-  <span class="lab">Committee console</span>
-  <h2 style="margin:.3rem 0 .5rem;font-size:1.3rem">Passcode</h2>
-  <p class="muted">For members of the anti-ragging cell. Nothing on this console contains a student's words.</p>
-  <label for="pass" class="lab">Passcode</label>
-  <input id="pass" type="password" placeholder="passcode" autocomplete="current-password" aria-describedby="loginErr">
-  <div class="row" style="margin-top:.8rem"><button id="loginBtn" class="primary">Enter</button><span class="muted" id="loginErr" role="alert"></span></div>
+  <span class="brand" style="padding:0 0 .6rem">Unsigned · anti-ragging cell</span>
+  <h2 style="margin:.2rem 0 .4rem;font:500 1.85rem/1.15 var(--serif)">Committee <em>Console</em></h2>
+  <p class="muted" style="font:400 1rem/1.45 var(--serif);margin-bottom:1.2rem">For authorized members of the anti-ragging cell. Nothing on this console contains a student's raw words.</p>
+  <label for="pass" class="lab" style="margin-bottom:.35rem">Passcode</label>
+  <input id="pass" type="password" placeholder="Enter committee passcode" autocomplete="current-password" aria-describedby="loginErr">
+  <div class="row" style="margin-top:1rem"><button id="loginBtn" class="primary">Enter Console</button><span class="muted" id="loginErr" role="alert" style="color:var(--bad);font-weight:600"></span></div>
 </div>
 
 <div id="shell" class="shell hidden">
   <aside>
-    <div class="brand">Unsigned<small>Anti-ragging cell · console</small></div>
+    <button id="sidebarToggle" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="brand">
+      <div class="brand-text">Unsigned<small>Anti-ragging cell · console</small></div>
+      <div class="brand-mini" title="Unsigned">U</div>
+    </div>
     <nav aria-label="Console sections">
-      <button data-tab="overview" class="on"><span class="ico">◐</span>Overview</button>
-      <button data-tab="cases"><span class="ico">▤</span>Cases<span class="cnt" id="needCnt"></span></button>
-      <button data-tab="proof"><span class="ico">▣</span>Privacy proof</button>
-      <button data-tab="demo"><span class="ico">▶</span>Demo</button>
+      <button data-tab="overview" class="on" title="Overview">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+        <span class="nav-text">Overview</span>
+      </button>
+      <button data-tab="cases" title="Cases">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span class="nav-text">Cases</span>
+        <span class="cnt" id="needCnt"></span>
+      </button>
+      <button data-tab="proof" title="Privacy proof">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        <span class="nav-text">Privacy proof</span>
+      </button>
+      <button data-tab="demo" title="Demo">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <span class="nav-text">Demo</span>
+      </button>
     </nav>
     <div class="foot">
-      <button class="primary" id="presentBtn">Present mode ↗</button>
-      <button class="ghost small" id="reportBtn">Weekly report</button>
-      <button class="ghost small" id="logoutBtn">Sign out</button>
+      <button class="primary" id="presentBtn" title="Present mode">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        <span class="btn-text">Present mode ↗</span>
+      </button>
+      <button class="ghost small" id="reportBtn" title="Weekly report">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span class="btn-text">Weekly report</span>
+      </button>
+      <button class="ghost small" id="logoutBtn" title="Sign out">
+        <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span class="btn-text">Sign out</span>
+      </button>
     </div>
   </aside>
 
   <div class="content">
     <!-- OVERVIEW -->
     <section id="overview">
-      <div class="pagehead"><div><h1>This week</h1><p>Where and when things are happening — never who. Cells with fewer than <b id="kNote">3</b> reports are hidden so that no single student can be singled out.</p></div><span class="muted" id="weekLab"></span></div>
+      <div class="pagehead">
+        <div>
+          <h1>Where &amp; when things happen. <em>Never who.</em></h1>
+          <p>Spatial heat grid and rising distress patterns across campus. Cells with fewer than <b id="kNote">3</b> reports are generalized so that no single student can be singled out.</p>
+        </div>
+        <span class="pill ok" id="weekLab" style="font-size:.85rem;padding:.35em .8em"></span>
+      </div>
       <div class="kpis">
         <div class="tile" id="kOpen"><span class="lab">Open cases</span><span class="big">–</span><span class="delta"></span></div>
         <div class="tile"><span class="lab">Cards this week</span><span class="big" id="kWeek">–</span><span class="delta" id="kWeekD"></span></div>
-        <div class="tile"><span class="lab">Awaiting release</span><span class="big" id="kPend">–</span><span class="delta">released after a random delay so arrival order can't be matched to a person</span></div>
-        <div class="tile" id="kAlerts"><span class="lab">Rising patterns</span><span class="big">–</span><span class="delta">place × time × behaviour, above its own history</span></div>
+        <div class="tile"><span class="lab">Awaiting release</span><span class="big" id="kPend">–</span><span class="delta">released after random delay so arrival order cannot link to identity</span></div>
+        <div class="tile" id="kAlerts"><span class="lab">Rising patterns</span><span class="big">–</span><span class="delta">place × time × behaviour, significantly above baseline</span></div>
       </div>
-      <div class="two">
-        <div class="card">
-          <div class="blockhead"><h2>Where × when</h2><span>this week · click a cell to open those cases</span></div>
-          <div class="heat" id="heat"></div>
-          <div class="legend"><span><i style="background:var(--surface-2)"></i>none</span><span><i style="background:#2b4a55"></i>few</span><span><i style="background:#3d8a94"></i>several</span><span><i style="background:#f2b441"></i>many</span><span>· = hidden, fewer than k</span></div>
-        </div>
-        <div>
-          <div class="blockhead"><h2>Rising patterns</h2><span>what needs the squad</span></div>
-          <div id="alerts"></div>
+      <!-- Full-Width Where x When Grid -->
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="blockhead"><h2>Where × when</h2><span>this week · click a cell to filter cases</span></div>
+        <div class="heat" id="heat"></div>
+        <div class="legend">
+          <span><i style="background:var(--surface-2)"></i>none</span>
+          <span><i style="background:#D0E7E9"></i>few</span>
+          <span><i style="background:#87C0C7"></i>several</span>
+          <span><i style="background:#E8A838"></i>many</span>
+          <span>· = hidden, fewer than k</span>
         </div>
       </div>
+
+      <!-- Rising Patterns Row with Horizontal Carousel Controls -->
+      <div class="patterns-section">
+        <div class="blockhead">
+          <h2>Rising patterns</h2>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <span>squad interventions needed</span>
+            <div style="display:flex;gap:.35rem">
+              <button class="carousel-btn" id="alertsLeft" aria-label="Scroll patterns left" title="Scroll left">‹</button>
+              <button class="carousel-btn" id="alertsRight" aria-label="Scroll patterns right" title="Scroll right">›</button>
+            </div>
+          </div>
+        </div>
+        <div class="alerts-carousel-wrap">
+          <div class="alerts-scroll" id="alerts"></div>
+        </div>
+      </div>
+
+      <!-- Trend and Needs Action -->
       <div class="two">
-        <div class="card">
-          <div class="blockhead"><h2>Cards per week</h2><span>last 8 weeks</span></div>
-          <div class="spark" id="spark"></div>
+        <div class="card spark-card">
+          <div class="blockhead"><h2>Cards per week</h2><span>last 8 weeks trend</span></div>
+          <div class="spark-wrap">
+            <div class="spark" id="spark"></div>
+          </div>
+          <div class="spark-stats">
+            <div class="stat-pill">
+              <span class="stat-label">8-Wk Total</span>
+              <span class="stat-value" id="sparkTotal">–</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Weekly Avg</span>
+              <span class="stat-value" id="sparkAvg">–</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Peak Week</span>
+              <span class="stat-value" id="sparkPeak">–</span>
+            </div>
+          </div>
         </div>
         <div class="card">
-          <div class="blockhead"><h2>Needs you now</h2><span>immediate & soon, not yet opened</span></div>
+          <div class="blockhead"><h2>Needs you now</h2><span>immediate &amp; soon, not yet opened</span></div>
           <div class="need" id="need"></div>
         </div>
       </div>
@@ -168,49 +872,81 @@
 
     <!-- CASES -->
     <section id="cases" class="hidden">
-      <div class="pagehead"><div><h1>Cases</h1><p>Every card the sanitiser released. Click a row for the full card, why it was classified that way, the linkability audit, and the thread with the student.</p></div></div>
+      <div class="pagehead">
+        <div>
+          <h1>Released cases. <em>Sanitized &amp; anonymous.</em></h1>
+          <p>Every card the privacy pipeline released. Click a row for the structured card, classification rationale, linkability audit, and two-way anonymous student thread.</p>
+        </div>
+      </div>
       <div class="chips">
-        <button data-f="needs" class="on">Needs action</button><button data-f="in_progress">In progress</button><button data-f="resolved">Resolved</button><button data-f="all">All</button>
-        <input id="q" type="search" placeholder="filter: hostel, night, physical…">
+        <button data-f="needs" class="on">Needs action</button>
+        <button data-f="in_progress">In progress</button>
+        <button data-f="resolved">Resolved</button>
+        <button data-f="all">All</button>
+        <input id="q" type="search" placeholder="Filter: hostel, night, physical…">
         <span class="muted" id="casesLab"></span>
       </div>
-      <div class="card" style="padding:0;overflow:auto"><table class="cases" aria-label="Released cases"><thead><tr><th>Urgency</th><th>Distress</th><th>What</th><th>Where · when</th><th>Day</th><th>Status</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+      <div class="card" style="padding:0;overflow:auto;border-radius:14px">
+        <table class="cases" aria-label="Released cases">
+          <thead>
+            <tr>
+              <th>Urgency</th>
+              <th>Distress</th>
+              <th>What happened</th>
+              <th>Where</th>
+              <th>When</th>
+              <th>Day</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
     </section>
 
     <!-- PRIVACY PROOF -->
     <section id="proof" class="hidden">
-      <div class="pagehead"><div><h1>Privacy proof</h1><p>What we can prove by construction, and what we measured against the strongest attacker we could build. Every number here comes from <code>evaluate.py</code> with its run date.</p></div></div>
-      <div id="seedWarn" class="warnbox hidden">These numbers come from the team-written dev seed — a smoke test. They are replaced by the real 30–40-author corpus before any slide.</div>
-      <div class="card" style="margin-bottom:1rem">
-        <div class="blockhead"><h2>What leaves the sanitiser</h2><span>the only channel is the card</span></div>
+      <div class="pagehead">
+        <div>
+          <h1>Privacy proof &amp; <em>benchmarks</em></h1>
+          <p>Mathematical privacy by construction, validated empirically against state-of-the-art stylometry attackers. Metrics dynamically loaded from <code>evaluate.py</code>.</p>
+        </div>
+      </div>
+      <div id="seedWarn" class="warnbox hidden">
+        <b>Dev Seed Notice:</b> These numbers come from the team-written dev seed (smoke test dataset). They are replaced by the calibrated benchmark corpus before presentations.
+      </div>
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="blockhead"><h2>What leaves the sanitiser</h2><span>the only release channel is the card</span></div>
         <div class="stepper" id="stepper"></div>
-        <p class="muted">A card is a bounded tuple of categories plus a sentence generated from a template. No word of the student's is copied into it, so no writing style can be in it. The channel's total capacity is <b id="capBits">–</b> bits per card — about anything, including the author.</p>
+        <p class="muted" style="font:400 1rem/1.5 var(--serif)">A card is a bounded tuple of categories plus an account generated from a fixed closed-vocabulary lexicon. No word of the student is copied, so writing style is mathematically excluded. Total channel capacity is <b id="capBits" style="font-family:var(--mono);color:var(--ink)">–</b> bits per card.</p>
       </div>
       <div class="two">
         <div class="card">
           <div class="blockhead"><h2>The attacker</h2><span>authorship attribution · leave-one-out</span></div>
           <div class="bars" id="bars"></div>
-          <p class="muted">The orange line is chance. Deleting the name does nothing; normalising spelling barely helps; a card gives the attacker nothing.</p>
+          <p class="muted" style="font:400 .95rem/1.4 var(--serif);margin-top:.8rem">The orange vertical marker indicates chance baseline. Deleting the name leaves style intact; normalizing spelling barely reduces linkability; the sanitized card reduces attribution to chance.</p>
         </div>
         <div class="card try">
-          <div class="blockhead"><h2>Try it</h2><span>same student?</span></div>
-          <textarea id="tA" placeholder="complaint A"></textarea>
-          <textarea id="tB" placeholder="complaint B" style="margin-top:.5rem"></textarea>
-          <div class="row" style="margin-top:.5rem"><button id="tryBtn" class="small">Compare</button><span id="tryOut" class="muted"></span></div>
+          <div class="blockhead"><h2>Attacker simulator</h2><span>test same-author probability</span></div>
+          <p class="muted" style="font-size:.85rem;margin:0 0 .5rem">Paste two complaint texts to see if the stylometric model links them to the same author.</p>
+          <textarea id="tA" placeholder="Complaint text A..."></textarea>
+          <textarea id="tB" placeholder="Complaint text B..." style="margin-top:.5rem"></textarea>
+          <div class="row" style="margin-top:.6rem"><button id="tryBtn" class="small primary">Compare authorship</button><span id="tryOut" class="muted"></span></div>
         </div>
       </div>
-      <div class="card" style="margin-bottom:1rem">
-        <div class="blockhead"><h2>Proofs that do not depend on who wrote the text</h2><span>the non-circular evidence</span></div>
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="blockhead"><h2>Proofs that do not depend on who wrote the text</h2><span>non-circular empirical evidence</span></div>
         <div class="ablate">
           <div class="tile"><span class="lab">Adversarial fuzz — release channel</span><span class="big" id="fzInputs">–</span><span class="muted" id="fzSub">inputs with planted canary words</span></div>
           <div class="tile"><span class="lab">Style invariance</span><span class="big" id="siVal">–</span><span class="muted" id="siSub">incidents written in seven styles each</span></div>
           <div class="tile"><span class="lab">Hallway test (one-tap, anonymous)</span><span class="big" id="fbVal">–</span><span class="muted" id="fbSub">understood the card · felt safe</span></div>
         </div>
       </div>
-      <div class="card" style="margin-bottom:1rem">
+      <div class="card" style="margin-bottom:1.1rem">
         <div class="blockhead"><h2>The account channel</h2><span>facts in, fingerprints out</span></div>
         <div class="ablate">
-          <div class="tile"><span class="lab">Words released · outside the lexicon</span><span class="big" id="lexWords">–</span><span class="muted">every word of every account comes from a <b id="lexSize">–</b>-word lexicon; the student's words are never copied</span></div>
+          <div class="tile"><span class="lab">Words released · outside lexicon</span><span class="big" id="lexWords">–</span><span class="muted">every word of every account comes from a <b id="lexSize">–</b>-word lexicon; the student's words are never copied</span></div>
           <div class="tile"><span class="lab">Attacker on released accounts</span><span class="big" id="accNarr">–</span><span class="muted">attribution accuracy · chance <span id="chanceNarr">–</span></span></div>
           <div class="tile"><span class="lab">Account channel capacity</span><span class="big" id="narrBits">–</span><span class="muted">the fact space — what the committee needs, none of it style</span></div>
         </div>
@@ -220,24 +956,29 @@
         <div class="tile"><span class="lab">Raw text discarded after</span><span class="big" id="latVal">–</span><span class="muted" id="latSub"></span></div>
         <div class="tile"><span class="lab">Classifier (grouped by author)</span><span class="big" id="f1Val">–</span><span class="muted" id="f1Sub"></span></div>
       </div>
-      <p class="muted" id="evDate" style="margin-top:.8rem"></p>
+      <p class="muted" id="evDate" style="margin-top:.9rem;font-size:.85rem"></p>
     </section>
 
     <!-- DEMO -->
     <section id="demo" class="hidden">
-      <div class="pagehead"><div><h1>Demo setup</h1><p>Present mode runs the whole story live on the real models: three complaints → the attacker links two → the same three through Unsigned → the attacker fails → your live card → patterns → proof.</p></div></div>
+      <div class="pagehead">
+        <div>
+          <h1>Demo setup &amp; <em>live simulation</em></h1>
+          <p>Present mode runs the whole story live on the real models: three complaints → attacker links two → sanitized through Unsigned → attacker fails → live card → patterns → proof.</p>
+        </div>
+      </div>
       <div class="two">
         <div class="card">
           <div class="blockhead"><h2>Demo complaints</h2><span>two should be by the same person</span></div>
           <div id="demoTexts"></div>
-          <div class="row" style="margin-top:.6rem"><button id="demoAdd" class="ghost small">+ add</button><button id="demoSave" class="small primary">Save for Present</button><button id="demoReset" class="ghost small">reset to defaults</button><span class="muted" id="demoMsg"></span></div>
+          <div class="row" style="margin-top:.8rem"><button id="demoAdd" class="ghost small">+ add</button><button id="demoSave" class="small primary">Save for Present</button><button id="demoReset" class="ghost small">Reset to defaults</button><span class="muted" id="demoMsg"></span></div>
         </div>
         <div class="card">
-          <div class="blockhead"><h2>What the attacker knows</h2><span>the adversary's reference samples</span></div>
-          <p class="muted">A warden holding a student's earlier essay is the realistic threat. Add such a sample here so the audit can show the attacker's probability on <em>that</em> author for a live submission (students then use <code>/?demo=1</code>).</p>
-          <div class="row"><input id="refAuthor" type="text" value="JUDGE" style="width:9rem"><input id="refText" type="text" placeholder="a sentence this person wrote elsewhere" style="flex:1;min-width:14rem"></div>
-          <div class="row" style="margin-top:.5rem"><button id="refBtn" class="small">Add sample</button><span class="muted" id="refMsg"></span></div>
-          <hr style="border:0;border-top:1px solid var(--rule);margin:1rem 0">
+          <div class="blockhead"><h2>What the attacker knows</h2><span>adversary's reference samples</span></div>
+          <p class="muted" style="font:400 .95rem/1.4 var(--serif)">A warden holding a student's earlier assignment is the realistic threat. Add such a sample here so the audit can show the attacker's probability on <em>that</em> author for a live submission (students then use <code>/?demo=1</code>).</p>
+          <div class="row"><input id="refAuthor" type="text" value="JUDGE" style="width:9rem"><input id="refText" type="text" placeholder="A sentence this person wrote elsewhere" style="flex:1;min-width:14rem"></div>
+          <div class="row" style="margin-top:.7rem"><button id="refBtn" class="small primary">Add sample</button><span class="muted" id="refMsg"></span></div>
+          <hr style="border:0;border-top:1px solid var(--rule);margin:1.1rem 0">
           <p class="muted">Student page for the live step: <code id="studentUrl"></code></p>
         </div>
       </div>
@@ -272,6 +1013,19 @@ $("#logoutBtn").onclick = logout;
 $("#presentBtn").onclick = () => window.open("/present", "_blank");
 $("#reportBtn").onclick = async () => { const r = await fetch("/api/report/weekly", { headers:H() }); const w = window.open("", "_blank"); w.document.write(await r.text()); w.document.close(); };
 
+/* ---------- sidebar toggle ---------- */
+function toggleSidebar() {
+  const shell = $("#shell");
+  const isCollapsed = shell.classList.toggle("collapsed");
+  sessionStorage.setItem("unsigned_sidebar_collapsed", isCollapsed ? "1" : "0");
+}
+if ($("#sidebarToggle")) {
+  $("#sidebarToggle").onclick = toggleSidebar;
+}
+if (sessionStorage.getItem("unsigned_sidebar_collapsed") === "1") {
+  $("#shell").classList.add("collapsed");
+}
+
 /* ---------- nav ---------- */
 function show(tab) {
   document.querySelectorAll("aside nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
@@ -280,7 +1034,7 @@ function show(tab) {
 document.querySelectorAll("aside nav button").forEach(b => b.onclick = () => show(b.dataset.tab));
 
 /* ---------- overview ---------- */
-const heatColor = n => n === 0 ? "var(--surface-2)" : n <= 2 ? "#2b4a55" : n <= 5 ? "#3d8a94" : "#f2b441";
+const heatColor = n => n === 0 ? "var(--surface-2)" : n <= 2 ? "#D0E7E9" : n <= 5 ? "#87C0C7" : "#E8A838";
 async function renderOverview() {
   const o = await j("/api/overview"); overviewData = o;
   const p = await j("/api/patterns");
@@ -292,13 +1046,22 @@ async function renderOverview() {
   const rows = o.rows.map(r => `<div class="hc"><span class="rl">${pretty(r)}</span>${o.cols.map(c => { const cell = o.grid.find(x => x.row===r && x.col===c); const n = cell.n; return `<div class="cell ${cell.suppressed?"sup":""}" data-r="${r}" data-c="${c}" style="background:${heatColor(n)}" title="${pretty(r)} · ${c}">${cell.suppressed ? "·" : (n || "")}</div>`; }).join("")}</div>`);
   $("#heat").innerHTML = `<div class="hc"><span></span>${o.cols.map(c => `<span class="ch">${c}</span>`).join("")}</div>` + rows.join("");
   $("#heat").querySelectorAll(".cell").forEach(el => el.onclick = () => { placeFilter = el.dataset.r; filter = "all"; $("#q").value = pretty(el.dataset.r); show("cases"); renderCases(); });
-  $("#alerts").innerHTML = p.alerts.length ? p.alerts.map(a => `<div class="card alert" style="margin-bottom:.8rem"><h3>${esc(a.message)}</h3><div class="meta">p = ${a.p_value.toExponential(1)} · usual ${a.baseline_per_week}/week · ${a.cards_this_week} distinct cards</div><p>${esc(a.suggested_action)}</p><div class="row" style="margin-top:.5rem"><button class="small" onclick="placeFilter='${a.location}';filter='all';document.querySelector('#q').value='${pretty(a.location)}';show('cases');renderCases()">Open these cases</button></div></div>`).join("")
-    : `<div class="card"><p class="muted" style="margin:0">Nothing rising this week. An alert appears when one place × time × behaviour has at least ${o.k} distinct cards, more than its own history explains.</p></div>`;
+  $("#alerts").innerHTML = p.alerts.length ? p.alerts.map(a => `<div class="card alert"><h3>${esc(a.message)}</h3><div class="meta">p = ${a.p_value.toExponential(1)} · usual ${a.baseline_per_week}/week · ${a.cards_this_week} distinct cards</div><p>${esc(a.suggested_action)}</p><div class="row" style="margin-top:auto;padding-top:.6rem"><button class="small primary" onclick="placeFilter='${a.location}';filter='all';document.querySelector('#q').value='${pretty(a.location)}';show('cases');renderCases()">Open these cases</button></div></div>`).join("")
+    : `<div class="card empty-card"><p class="muted" style="margin:0;font:400 1rem/1.4 var(--serif)">Nothing rising this week. An alert appears when one place × time × behaviour has at least ${o.k} distinct cards, more than its own history explains.</p></div>`;
   const max = Math.max(1, ...o.series.map(s => s.n));
-  $("#spark").innerHTML = o.series.map(s => `<div class="${s.week===o.week?"now":""}" style="height:${Math.max(4, s.n/max*100)}%" title="${s.n}"><span>${s.n}</span></div>`).join("");
-  const need = (cardsData || await j("/api/cards")).cards.filter(d => !d.parent_id && d.status === "received" && d.urgency !== "routine").slice(0, 6);
-  $("#need").innerHTML = need.length ? need.map(d => `<button onclick="openCard(${d.id})"><span class="pill ${d.urgency}">${d.urgency}</span><span class="t">${pretty(d.types)} · ${pretty(d.location)} · ${pretty(d.time_bucket)}</span><span class="d">#${d.id}</span></button>`).join("") : `<p class="muted" style="margin:0">Nothing waiting. Immediate and soon cards appear here until someone opens them.</p>`;
+  const totalCards = o.series.reduce((acc, s) => acc + s.n, 0);
+  const avgCards = (totalCards / Math.max(1, o.series.length)).toFixed(1);
+  const peakCards = Math.max(...o.series.map(s => s.n));
+  $("#spark").innerHTML = o.series.map(s => `<div class="${s.week===o.week?"now":""}" style="height:${Math.max(6, Math.round((s.n/max)*100))}%" title="Week ${s.week}: ${s.n} card${s.n===1?'':'s'}"><span class="bar-num">${s.n}</span></div>`).join("");
+  if ($("#sparkTotal")) $("#sparkTotal").textContent = totalCards;
+  if ($("#sparkAvg")) $("#sparkAvg").textContent = avgCards;
+  if ($("#sparkPeak")) $("#sparkPeak").textContent = peakCards;
+  cardsData = cardsData || await j("/api/cards");
+  const need = (cardsData.cards || []).filter(d => !d.parent_id && d.status === "received" && d.urgency !== "routine").slice(0, 6);
+  $("#need").innerHTML = need.length ? need.map(d => `<button onclick="openCard(${d.id})"><span class="pill ${d.urgency}">${d.urgency}</span><span class="t">${pretty(d.types)} · ${pretty(d.location)} · ${pretty(d.time_bucket)}</span><span class="d">#${d.id}</span></button>`).join("") : `<p class="muted" style="margin:0;font:400 1rem/1.4 var(--serif)">Nothing waiting. Immediate and soon cards appear here until someone opens them.</p>`;
 }
+$("#alertsLeft").onclick = () => { $("#alerts").scrollBy({ left: -380, behavior: "smooth" }); };
+$("#alertsRight").onclick = () => { $("#alerts").scrollBy({ left: 380, behavior: "smooth" }); };
 
 /* ---------- cases ---------- */
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filter = b.dataset.f; placeFilter = ""; renderCases(); });
@@ -318,8 +1081,8 @@ async function renderCases() {
   $("#needCnt").textContent = c.cards.filter(d => !d.parent_id && d.status === "received").length || "";
   const list = c.cards.filter(visible);
   $("#casesLab").textContent = `${list.length} shown · ${c.pending_release} awaiting release · ${c.below_k} at coarsest level`;
-  $("#rows").innerHTML = list.map(d => `<tr data-id="${d.id}" class="${selected===d.id?"sel":""}"><td><span class="pill ${d.urgency}">${d.urgency}</span></td><td><span class="pill ${d.distress}">${d.distress}</span></td><td class="what">${pretty(d.types)}${d.behaviours.length?` <span class="muted">· ${pretty(d.behaviours)}</span>`:""}</td><td>${pretty(d.location)} · ${pretty(d.time_bucket)}</td><td class="muted">${d.day}</td><td><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></td><td class="muted">${c.cards.filter(x=>x.parent_id===d.id).length?"＋":""}${d.n_replies?" ✉":""}</td></tr>`).join("")
-    || `<tr><td colspan="7" class="muted">Nothing here. ${filter==="needs"?"No cards are waiting to be opened.":""}</td></tr>`;
+  $("#rows").innerHTML = list.map(d => `<tr data-id="${d.id}" class="${selected===d.id?"sel":""}"><td><span class="pill ${d.urgency}">${d.urgency}</span></td><td><span class="pill ${d.distress}">${d.distress}</span></td><td class="what">${pretty(d.types)}${d.behaviours.length?` <span class="muted">· ${pretty(d.behaviours)}</span>`:""}</td><td>${pretty(d.location)}</td><td>${pretty(d.time_bucket)}</td><td class="muted">${d.day}</td><td><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></td><td class="muted">${c.cards.filter(x=>x.parent_id===d.id).length?"＋":""}${d.n_replies?" ✉":""}</td></tr>`).join("")
+    || `<tr><td colspan="8" class="muted" style="padding:2rem;text-align:center">Nothing here. ${filter==="needs"?"No cards are waiting to be opened.":""}</td></tr>`;
   $("#rows").querySelectorAll("tr[data-id]").forEach(tr => { tr.tabIndex = 0; tr.setAttribute("role", "button"); tr.onclick = () => openCard(+tr.dataset.id); tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(+tr.dataset.id); } }; });
 }
 async function openCard(id) {
@@ -331,23 +1094,26 @@ async function openCard(id) {
   const adds = cardsData.cards.filter(x => x.parent_id === id);
   const why = (d.why.distress||[]).slice(0,3).map(w => `<b>${esc(w)}</b>`).concat((d.why.extracted_spans||[]).slice(0,4).map(w => `<b>${esc(w)}</b>`)).join(" ");
   $("#drawer").innerHTML = `<button class="ghost small close" id="dClose" aria-label="Close case detail">✕</button>
-    <span class="lab">Case #${d.id} · ${d.day}</span>
-    <h2>${pretty(d.types)}</h2>
-    <div class="row"><span class="pill ${d.urgency}">${d.urgency}</span><span class="pill ${d.distress}">distress ${d.distress}</span><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></div>
-    <p class="narr">${esc(d.narrative)}</p>
-    <dl class="fields"><dt>where</dt><dd>${pretty(d.location)}</dd><dt>when</dt><dd>${pretty(d.time_bucket)}</dd><dt>who</dt><dd>${pretty(d.actor_role)}</dd><dt>behaviours</dt><dd>${pretty(d.behaviours)||"—"}</dd></dl>
-    <div class="why">Classified from: ${why || "—"}${d.generalisation_steps.length?`<br>Widened so that ≥ k cards share it: ${esc(d.generalisation_steps.join("; "))}`:""}${d.k_satisfied?"":"<br>Shown at the coarsest level — fewer than k similar cards yet."}</div>
-    ${d.facts && Object.keys(d.facts).length ? `<span class="lab" style="margin-top:.6rem">Facts the account was built from</span><div class="fchips">${factChips(d)}</div>` : ""}
-    <div class="audit">
-      <div class="row"><span class="lab">Style audit</span><label class="muted" style="font-size:.8rem"><input type="checkbox" id="dRaw"> what the attacker could do with the raw text</label></div>
-      <div class="row" style="margin-top:.4rem"><div class="meter" style="flex:1"><i id="dMeter"></i></div><span class="val" id="dVal"></span></div>
-      <p class="muted" id="dExp" style="margin:.4rem 0 0"></p>
-      <p class="muted" style="margin:.2rem 0 0">Raw text discarded after ${d.raw_discarded_after_ms} ms.</p>
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.2rem">
+      <span class="lab">Case #${d.id}</span>
+      <span class="pill quiet" style="font-size:.7rem">${d.day}</span>
     </div>
-    <span class="lab">Thread</span>
+    <h2>${pretty(d.types)}</h2>
+    <div class="row" style="margin:.6rem 0 .9rem"><span class="pill ${d.urgency}">${d.urgency}</span><span class="pill ${d.distress}">distress ${d.distress}</span><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></div>
+    <div class="narrbox"><p class="narr">${esc(d.narrative)}</p></div>
+    <dl class="fields"><dt>where</dt><dd>${pretty(d.location)}</dd><dt>when</dt><dd>${pretty(d.time_bucket)}</dd><dt>who</dt><dd>${pretty(d.actor_role)}</dd><dt>behaviours</dt><dd>${pretty(d.behaviours)||"—"}</dd></dl>
+    <div class="why">Classified from: ${why || "—"}${d.generalisation_steps.length?`<br>Widened so that ≥ k cards share it: ${esc(d.generalisation_steps.join("; "))}`:""}${d.k_satisfied?"":"<br>Shown at coarsest level — fewer than k similar cards yet."}</div>
+    ${d.facts && Object.keys(d.facts).length ? `<span class="lab" style="margin-top:.8rem">Facts the account was built from</span><div class="fchips">${factChips(d)}</div>` : ""}
+    <div class="audit">
+      <div class="row"><span class="lab" style="color:var(--accent-ink)">Style audit</span><label class="muted" style="font-size:.82rem;cursor:pointer"><input type="checkbox" id="dRaw" style="width:auto;margin-right:.3rem"> test raw text vulnerability</label></div>
+      <div class="row" style="margin-top:.5rem"><div class="meter" style="flex:1"><i id="dMeter"></i></div><span class="val" id="dVal"></span></div>
+      <p class="muted" id="dExp" style="margin:.5rem 0 0;font:400 .95rem/1.45 var(--serif)"></p>
+      <p class="muted" style="margin:.3rem 0 0;font:600 .75rem var(--mono)">Raw text discarded after ${d.raw_discarded_after_ms} ms.</p>
+    </div>
+    <span class="lab" style="margin-top:.8rem">Anonymous communication thread</span>
     <div class="thread">${adds.map(x => `<div class="item"><span class="who">Student added</span>${esc(x.narrative)}</div>`).join("")}${d.n_replies?`<div class="item muted">${d.n_replies} repl${d.n_replies>1?"ies":"y"} sent — the student reads them with their passphrase.</div>`:""}${!adds.length && !d.n_replies ? `<div class="item muted">No replies yet.</div>`:""}</div>
     <textarea id="dReply" placeholder="Reply to the student. They will read this with their passphrase — you will never know who they are."></textarea>
-    <div class="row" style="margin-top:.5rem"><button class="primary small" id="dSend">Send reply</button>${d.status!=="in_progress"?'<button class="small ghost st" data-st="in_progress">Mark in progress</button>':""}${d.status!=="resolved"?'<button class="small ghost st" data-st="resolved">Resolve</button>':""}${d.status==="resolved"?'<button class="small ghost st" data-st="received">Reopen</button>':""}</div>`;
+    <div class="row" style="margin-top:.6rem"><button class="primary small" id="dSend">Send reply</button>${d.status!=="in_progress"?'<button class="small ghost st" data-st="in_progress">Mark in progress</button>':""}${d.status!=="resolved"?'<button class="small ghost st" data-st="resolved">Resolve</button>':""}${d.status==="resolved"?'<button class="small ghost st" data-st="received">Reopen</button>':""}</div>`;
   const nTok = a.narrative_tokens || 0, nFor = a.foreign_tokens || 0;
   const setMeter = showRaw => {
     if (showRaw) { const v = raw; $("#dMeter").style.width = Math.max(2, v*100) + "%"; $("#dMeter").style.background = "var(--bad)"; $("#dVal").textContent = pct(v);
@@ -371,7 +1137,7 @@ const NICE = { none:"none", some:"some money", under_100:"under ₹100", "100_50
 const nice = v => NICE[v] ?? pretty(v);
 function factChips(d) {
   const f = d.facts, gen = {}; (d.fact_status||[]).forEach(s => { if (s.status === "generalised") gen[s.field] = s; });
-  const groups = [["what they did", f.acts||[]],["who", [f.actor_role, f.actor_count]],["where · when", [f.location, f.time_bucket]],["how often · how long", [f.frequency, f.duration]],["money", [f.amount]],["online / media", f.digital||[]],["effect", f.consequences||[]],["flags", [f.public?"others present":null, f.ongoing?"still going on":null].filter(Boolean)]];
+  const groups = [["what they did", f.acts||[]],["who", [f.actor_role, f.actor_count]],["where", [f.location]],["when", [f.time_bucket]],["how often · how long", [f.frequency, f.duration]],["money", [f.amount]],["online / media", f.digital||[]],["effect", f.consequences||[]],["flags", [f.public?"others present":null, f.ongoing?"still going on":null].filter(Boolean)]];
   const fieldOf = { actor_role:1, actor_count:1, location:1, time_bucket:1, frequency:1, duration:1, amount:1 };
   return groups.map(([label, vals]) => vals.filter(v => v && v !== "unknown" && v !== "none").length ? `<div class="fgrp"><span class="k">${label}</span>${vals.filter(v => v && v !== "unknown" && v !== "none").map(v => { const g = Object.values(gen).find(x => x.released === v); return `<span class="chip ${g?"gen":""}">${nice(v)}${g?`<em>← ${nice(g.original)}</em>`:""}</span>`; }).join("")}</div>` : "").join("");
 }

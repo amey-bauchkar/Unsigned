@@ -26,6 +26,7 @@ import copy
 import hashlib
 import hmac
 import json
+import math
 import os
 import random
 import secrets
@@ -553,7 +554,7 @@ def set_status(card_id: int, s: StatusChange):
 
 @app.get("/api/report/weekly", dependencies=[Depends(committee)], response_class=HTMLResponse)
 def weekly_report():
-    """Aggregates only — no cards, no narratives — suitable for the institution's records."""
+    """Aggregates only — no cards, no narratives — suitable for institutional executive review."""
     week = int(time.time() // (7 * 86400))
     with _db() as con:
         rows = con.execute("SELECT card_json, week, status, day_bucket, resolved_at, release_at FROM cards WHERE released=1").fetchall()
@@ -561,39 +562,781 @@ def weekly_report():
     prev = [r for r in rows if r["week"] == week - 1]
 
     def agg(rs):
-        c_type, c_loc, c_urg = Counter(), Counter(), Counter()
+        c_type, c_loc, c_urg, c_dist = Counter(), Counter(), Counter(), Counter()
         for r in rs:
             d = json.loads(r["card_json"])
-            for t in d["types"]:
+            for t in d.get("types", []):
                 c_type[t] += 1
-            c_loc[d["location"]] += 1
-            c_urg[d["urgency"]] += 1
-        return c_type, c_loc, c_urg
+            c_loc[d.get("location", "unknown")] += 1
+            c_urg[d.get("urgency", "routine")] += 1
+            c_dist[d.get("distress", "low")] += 1
+        return c_type, c_loc, c_urg, c_dist
 
-    t_now, l_now, u_now = agg(this)
-    t_prev, _, _ = agg(prev)
+    t_now, l_now, u_now, d_now = agg(this)
+    t_prev, l_prev, u_prev, _ = agg(prev)
+
+    total_this = len(this)
+    total_prev = len(prev)
+    delta_total = total_this - total_prev
+    delta_str = f"+{delta_total}" if delta_total > 0 else f"{delta_total}"
+
+    all_received = sum(1 for r in rows if r["status"] == "received")
+    all_in_prog = sum(1 for r in rows if r["status"] == "in_progress")
+    all_resolved = sum(1 for r in rows if r["status"] == "resolved")
+    total_all = len(rows)
+
     resolved = [r for r in rows if r["status"] == "resolved" and r["resolved_at"]]
     med_days = None
     if resolved:
         ds = sorted((r["resolved_at"] - r["release_at"]) / 86400 for r in resolved)
         med_days = round(ds[len(ds) // 2], 1)
-    rows_html = "".join(f"<tr><td>{t.replace('_', ' ')}</td><td>{n}</td><td>{t_prev.get(t, 0)}</td></tr>" for t, n in t_now.most_common())
-    loc_html = "".join(f"<li>{l.replace('_', ' ')}: {n}</li>" for l, n in l_now.most_common(6))
-    return f"""<!doctype html><html><head><meta charset="utf-8"><title>Unsigned — weekly report</title>
-<link rel="stylesheet" href="/app.css"></head><body class="report"><main class="narrow">
-<p class="lab">Unsigned · institutional summary · week {week} · generated {time.strftime('%d %b %Y %H:%M')}</p>
-<h1>Anti-ragging cell — weekly summary</h1>
-<p class="muted">Aggregates only. No individual card, narrative or student information appears in this report.</p>
-<div class="grid3">
-  <div class="tile"><span class="lab">Cards this week</span><span class="big">{len(this)}</span><span class="muted">{len(prev)} last week</span></div>
-  <div class="tile"><span class="lab">Immediate-urgency cards</span><span class="big">{u_now.get('immediate', 0)}</span></div>
-  <div class="tile"><span class="lab">Median days to resolve</span><span class="big">{med_days if med_days is not None else '—'}</span></div>
+
+    # Palette
+    PALETTE = ["#1F6F78", "#D48A0C", "#C9463A", "#2F8F5B", "#5A738E", "#8B5FBF", "#B47D52", "#E8A838"]
+
+    # Generate SVG Donut Chart with innerRadius=65, size=200
+    def build_donut_svg(items, total, size=200, inner_radius=65):
+        cx, cy = size / 2, size / 2
+        R = 95
+        r = inner_radius
+        if total == 0 or not items:
+            return f'''<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" class="chart-svg">
+              <circle cx="{cx}" cy="{cy}" r="{(R+r)/2}" fill="none" stroke="var(--surface-2)" stroke-width="{R-r}" />
+              <text x="{cx}" y="{cy}" text-anchor="middle" dominant-baseline="middle" font-family="var(--ui)" fill="var(--muted)" font-size="12">No incidents</text>
+            </svg>'''
+        paths = []
+        current_angle = -math.pi / 2
+        for idx, (label, count) in enumerate(items):
+            if count <= 0:
+                continue
+            fraction = count / total
+            slice_angle = fraction * 2 * math.pi
+            if fraction >= 0.9999:
+                slice_angle = 1.9999 * math.pi
+            next_angle = current_angle + slice_angle
+            x1 = cx + R * math.cos(current_angle)
+            y1 = cy + R * math.sin(current_angle)
+            x2 = cx + R * math.cos(next_angle)
+            y2 = cy + R * math.sin(next_angle)
+            x3 = cx + r * math.cos(next_angle)
+            y3 = cy + r * math.sin(next_angle)
+            x4 = cx + r * math.cos(current_angle)
+            y4 = cy + r * math.sin(current_angle)
+            large_arc = 1 if slice_angle > math.pi else 0
+            color = PALETTE[idx % len(PALETTE)]
+            d = f"M {x1:.2f} {y1:.2f} A {R} {R} 0 {large_arc} 1 {x2:.2f} {y2:.2f} L {x3:.2f} {y3:.2f} A {r} {r} 0 {large_arc} 0 {x4:.2f} {y4:.2f} Z"
+            pct_val = round(fraction * 100)
+            formatted_label = label.replace("_", " ").title()
+            paths.append(f'<path class="pie-slice" d="{d}" fill="{color}" stroke="var(--surface)" stroke-width="2.5" data-index="{idx}" data-label="{formatted_label}" data-value="{count}" data-color="{color}"><title>{formatted_label}: {count} ({pct_val}%)</title></path>')
+            current_angle = next_angle
+        return f'<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" class="chart-svg">' + "".join(paths) + '</svg>'
+
+    top_types = t_now.most_common(8)
+    donut_svg = build_donut_svg(top_types, total_this if total_this > 0 else 1, size=200, inner_radius=65)
+
+    # Donut Legend HTML
+    legend_items = []
+    for idx, (t, n) in enumerate(top_types):
+        color = PALETTE[idx % len(PALETTE)]
+        pct_val = round((n / max(1, total_this)) * 100)
+        formatted_label = t.replace('_', ' ').title()
+        legend_items.append(
+            f'''<div class="legend-row" data-index="{idx}" data-label="{formatted_label}" data-value="{n}" data-color="{color}">
+              <span class="swatch" style="background:{color}"></span>
+              <span class="label">{formatted_label}</span>
+              <span class="count">{n}</span>
+              <span class="pct">{pct_val}%</span>
+            </div>'''
+        )
+    legend_html = "".join(legend_items) if legend_items else '<p class="muted">No categories recorded this week.</p>'
+
+    # Types Table Rows
+    type_table_rows = []
+    for t, n in t_now.most_common():
+        prev_n = t_prev.get(t, 0)
+        diff = n - prev_n
+        if diff > 0:
+            trend = f'<span class="pill bad" style="font-size:.72rem">+{diff} ↑</span>'
+        elif diff < 0:
+            trend = f'<span class="pill ok" style="font-size:.72rem">{diff} ↓</span>'
+        else:
+            trend = f'<span class="pill quiet" style="font-size:.72rem">0 —</span>'
+        share = f"{round((n / max(1, total_this)) * 100)}%"
+        type_table_rows.append(
+            f'<tr><td class="bold-cell">{t.replace("_", " ").title()}</td><td class="num">{n}</td><td class="num muted">{prev_n}</td><td>{trend}</td><td class="num">{share}</td></tr>'
+        )
+    type_table_html = "".join(type_table_rows) if type_table_rows else '<tr><td colspan="5" class="muted" style="text-align:center;padding:1.5rem">No categorized incidents recorded this week.</td></tr>'
+
+    # Generalized Locations Table / List
+    loc_table_rows = []
+    for l, n in l_now.most_common(6):
+        pct_loc = round((n / max(1, total_this)) * 100)
+        loc_table_rows.append(
+            f'''<div class="loc-item">
+              <div class="loc-head"><span class="loc-name">{l.replace('_', ' ').title()}</span><span class="loc-count"><b>{n}</b> ({pct_loc}%)</span></div>
+              <div class="loc-bar"><i style="width:{max(4, pct_loc)}%"></i></div>
+            </div>'''
+        )
+    loc_table_html = "".join(loc_table_rows) if loc_table_rows else '<p class="muted">No location clusters recorded.</p>'
+
+    # Urgency Badges & Counts
+    imm_count = u_now.get("immediate", 0)
+    soon_count = u_now.get("soon", 0)
+    rout_count = u_now.get("routine", 0)
+
+    gen_date = time.strftime("%d %B %Y, %H:%M IST")
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unsigned — Weekly Institutional Report (Week {week})</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  body {{
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--ui);
+    padding: 2.5rem 1rem 5rem;
+  }}
+  .report-container {{
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    padding: 2.5rem 2.8rem;
+    box-shadow: 0 8px 30px rgba(31,29,26,0.04);
+  }}
+  
+  /* Top Institutional Bar */
+  .inst-header {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--rule-strong);
+    padding-bottom: 1.2rem;
+    margin-bottom: 1.8rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }}
+  .inst-brand {{
+    font: 800 .82rem var(--ui);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+  }}
+  .inst-brand span {{
+    color: var(--muted);
+    font-weight: 500;
+  }}
+  .inst-actions {{
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+  }}
+  .btn-print {{
+    background: var(--accent);
+    color: #ffffff;
+    border: 1px solid var(--accent);
+    padding: .45rem 1rem;
+    border-radius: 999px;
+    font: 700 .82rem var(--ui);
+    cursor: pointer;
+    transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+  }}
+  .btn-print:hover {{
+    background: var(--accent-ink);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(31,111,120,0.25);
+  }}
+  
+  /* Title Block */
+  .title-block {{
+    margin-bottom: 2rem;
+  }}
+  .title-block h1 {{
+    font: 500 2.4rem/1.1 var(--serif);
+    letter-spacing: -.02em;
+    color: var(--ink);
+    margin: 0 0 .5rem;
+  }}
+  .title-block h1 em {{
+    font-style: italic;
+    color: var(--accent-ink);
+  }}
+  .meta-row {{
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+    font-size: .88rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    margin-bottom: .8rem;
+  }}
+  .meta-row b {{ color: var(--ink); }}
+  .confidential-notice {{
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent);
+    padding: .65rem 1rem;
+    border-radius: 0 10px 10px 0;
+    font: 400 .95rem/1.45 var(--serif);
+    color: var(--muted);
+  }}
+  .confidential-notice b {{ color: var(--ink); }}
+
+  /* KPI Grid */
+  .kpi-grid {{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.2rem;
+  }}
+  .kpi-card {{
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.1rem 1.2rem;
+    display: grid;
+    gap: .25rem;
+    align-content: start;
+    transition: transform .15s var(--ease);
+  }}
+  .kpi-card:hover {{ transform: translateY(-2px); }}
+  .kpi-card.alert-card {{
+    background: var(--bad-wash);
+    border-color: rgba(201, 70, 58, 0.3);
+  }}
+  .kpi-card.alert-card .kpi-num {{ color: var(--bad); }}
+  .kpi-title {{
+    font: 700 .68rem var(--ui);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }}
+  .kpi-num {{
+    font: 700 2.2rem/1.05 var(--num);
+    color: var(--ink);
+    letter-spacing: -.02em;
+  }}
+  .kpi-sub {{
+    font-size: .8rem;
+    color: var(--muted);
+    line-height: 1.3;
+  }}
+
+  /* Analytics 2-Column Section: Category Distribution (320px) + Lifecycle & Urgency (Lengthened to fill width) */
+  .analytics-grid {{
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2.2rem;
+    align-items: stretch;
+  }}
+  .panel {{
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem;
+    box-shadow: 0 1px 4px rgba(31,29,26,0.02);
+    display: flex;
+    flex-direction: column;
+  }}
+  .panel-header {{
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: .6rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }}
+  .panel-header h2 {{
+    font: 600 1.2rem/1.2 var(--serif);
+    color: var(--ink);
+    margin: 0;
+  }}
+  .panel-header span {{
+    font: 500 .75rem var(--num);
+    color: var(--muted);
+  }}
+
+  /* Donut Layout - Chart Top, Legend Below */
+  .donut-wrap {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.1rem;
+  }}
+  .pie-container {{
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+    margin: 0 auto;
+  }}
+  .chart-svg {{
+    width: 200px;
+    height: 200px;
+    display: block;
+    overflow: visible;
+  }}
+  .pie-slice {{
+    transition: transform .2s var(--ease), filter .2s;
+    transform-origin: 100px 100px;
+    cursor: pointer;
+  }}
+  .pie-slice:hover {{
+    transform: scale(1.035);
+    filter: drop-shadow(0 4px 8px rgba(31,29,26,0.15));
+  }}
+  .pie-center {{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+    width: 120px;
+  }}
+  .pie-val {{
+    font-family: var(--num);
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    transition: color .15s ease;
+  }}
+  .pie-label {{
+    font-family: var(--ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+    transition: color .15s ease;
+  }}
+  .legend-list {{
+    display: grid;
+    gap: .45rem;
+    font-size: .84rem;
+    width: 100%;
+  }}
+  .legend-row {{
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .35rem .5rem;
+    border-radius: 8px;
+    transition: background .15s;
+    cursor: pointer;
+  }}
+  .legend-row:hover {{
+    background: var(--surface-2);
+  }}
+  .legend-row .swatch {{
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }}
+  .legend-row .label {{
+    flex: 1;
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }}
+  .legend-row .count {{
+    font: 700 .82rem var(--num);
+    color: var(--muted);
+  }}
+  .legend-row .pct {{
+    font: 700 .8rem var(--num);
+    color: var(--accent-ink);
+    width: 36px;
+    text-align: right;
+  }}
+
+  /* Urgency & Status Distributions */
+  .dist-group {{
+    margin-bottom: 1.2rem;
+  }}
+  .dist-group:last-child {{ margin-bottom: 0; }}
+  .dist-label {{
+    font: 700 .68rem var(--ui);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .45rem;
+    display: block;
+  }}
+  .status-badges {{
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-bottom: .6rem;
+  }}
+  .bar-stacked {{
+    height: 10px;
+    border-radius: 6px;
+    background: var(--code);
+    display: flex;
+    overflow: hidden;
+    gap: 2px;
+  }}
+  .bar-stacked span {{
+    height: 100%;
+    transition: width .5s;
+  }}
+
+  /* Location Hotspots */
+  .loc-item {{
+    margin-bottom: .8rem;
+  }}
+  .loc-item:last-child {{ margin-bottom: 0; }}
+  .loc-head {{
+    display: flex;
+    justify-content: space-between;
+    font-size: .88rem;
+    margin-bottom: .25rem;
+  }}
+  .loc-name {{ font-weight: 600; color: var(--ink); }}
+  .loc-count {{ font-family: var(--num); font-size: .84rem; font-weight: 700; color: var(--muted); }}
+  .loc-bar {{
+    height: 7px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: hidden;
+  }}
+  .loc-bar i {{
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+  }}
+
+  /* Data Table */
+  table.report-table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    margin-top: .4rem;
+  }}
+  table.report-table th {{
+    background: var(--surface-2);
+    padding: .7rem .9rem;
+    font: 700 .68rem var(--ui);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule-strong);
+    text-align: left;
+  }}
+  table.report-table td {{
+    padding: .75rem .9rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }}
+  table.report-table td.bold-cell {{
+    font-weight: 600;
+    color: var(--ink);
+  }}
+  table.report-table td.num {{
+    font-family: var(--num);
+    font-weight: 600;
+    text-align: left;
+  }}
+
+  /* Regulatory & Sign-Off Footer */
+  .sign-off-section {{
+    border-top: 2px solid var(--rule-strong);
+    padding-top: 1.8rem;
+    margin-top: 2.5rem;
+  }}
+  .compliance-badge {{
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font: 700 .75rem var(--mono);
+    color: var(--accent-ink);
+    background: var(--accent-wash);
+    padding: .35rem .8rem;
+    border-radius: 999px;
+    margin-bottom: 1rem;
+  }}
+  .signatures-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2.2rem;
+  }}
+  .sig-box {{
+    border-top: 1px solid var(--rule-strong);
+    padding-top: .5rem;
+    font-size: .82rem;
+  }}
+  .sig-box b {{
+    display: block;
+    color: var(--ink);
+    font-size: .86rem;
+  }}
+  .sig-box span {{
+    color: var(--muted);
+  }}
+
+  /* Print Optimizations */
+  @media print {{
+    body {{
+      background: #ffffff !important;
+      padding: 0 !important;
+    }}
+    .report-container {{
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }}
+    .btn-print {{ display: none !important; }}
+  }}
+  
+  @media (max-width: 768px) {{
+    .report-container {{ padding: 1.5rem 1.2rem; }}
+    .kpi-grid {{ grid-template-columns: repeat(2, 1fr); }}
+    .analytics-grid {{ grid-template-columns: 1fr; }}
+    .donut-wrap {{ grid-template-columns: 1fr; text-align: center; }}
+    .signatures-grid {{ grid-template-columns: 1fr; }}
+  }}
+</style>
+</head>
+<body class="student">
+<div class="report-container">
+  
+  <!-- Institutional Header Bar -->
+  <header class="inst-header">
+    <div class="inst-brand">
+      Unsigned <span>· Anti-Ragging Cell · Institutional Intelligence</span>
+    </div>
+    <div class="inst-actions">
+      <span class="pill quiet">Week {week} Record</span>
+      <button class="btn-print" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Print / PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- Title & Confidentiality Notice -->
+  <section class="title-block">
+    <h1>Anti-Ragging Cell — <em>Weekly Intelligence Summary</em></h1>
+    <div class="meta-row">
+      <span>Reporting Period: <b>Academic Week {week}</b></span>
+      <span>•</span>
+      <span>Generated: <b>{gen_date}</b></span>
+      <span>•</span>
+      <span>Active Database: <b>{total_all} Total Released Cards</b></span>
+    </div>
+    <div class="confidential-notice">
+      <b>Zero-Persistence Institutional Privacy Notice:</b> Aggregates and generalized distributions only. In accordance with zero-knowledge architectural principles, raw complaint texts are dereferenced in-memory. Cards are released only at granularities satisfying k-anonymity (k ≥ {K}). No student identities, roll numbers, or stylistic markers exist in institutional storage.
+    </div>
+  </section>
+
+  <!-- 4-Column KPI Grid -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-title">Cards This Week</span>
+      <span class="kpi-num">{total_this}</span>
+      <span class="kpi-sub">{total_prev} cards logged last week ({delta_str} net trend)</span>
+    </div>
+    <div class="kpi-card {'alert-card' if imm_count > 0 else ''}">
+      <span class="kpi-title">Immediate Urgency</span>
+      <span class="kpi-num">{imm_count}</span>
+      <span class="kpi-sub">{'Requires priority squad dispatch' if imm_count > 0 else 'Zero immediate distress spikes'}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-title">Active Cases</span>
+      <span class="kpi-num">{all_received + all_in_prog}</span>
+      <span class="kpi-sub">{all_received} received · {all_in_prog} under investigation</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-title">Median Resolution</span>
+      <span class="kpi-num">{f"{med_days}d" if med_days is not None else '—'}</span>
+      <span class="kpi-sub">{all_resolved} cases successfully resolved</span>
+    </div>
+  </section>
+
+  <!-- 2-Column Analytics: Donut Chart + Status/Urgency -->
+  <section class="analytics-grid">
+    
+    <!-- Panel 1: Donut Pie Chart & Legend -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Category Distribution</h2>
+        <span>this week's breakdown</span>
+      </div>
+      <div class="donut-wrap">
+        <div class="pie-container">
+          {donut_svg}
+          <div class="pie-center text-center" id="pieCenter">
+            <div class="font-bold text-xl pie-val" id="pieCenterVal">{total_this}</div>
+            <div class="text-muted-foreground text-xs pie-label" id="pieCenterLabel">TOTAL</div>
+          </div>
+        </div>
+        <div class="legend-list">
+          {legend_html}
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Urgency & Lifecycle Breakdown -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Lifecycle &amp; Urgency</h2>
+        <span>operational status</span>
+      </div>
+      
+      <div class="dist-group">
+        <span class="dist-label">Urgency Tiers (This Week)</span>
+        <div class="status-badges">
+          <span class="pill {'bad' if imm_count > 0 else 'quiet'}">Immediate: {imm_count}</span>
+          <span class="pill {'warn' if soon_count > 0 else 'quiet'}">Soon: {soon_count}</span>
+          <span class="pill quiet">Routine: {rout_count}</span>
+        </div>
+        <div class="bar-stacked">
+          <span style="width:{(imm_count/max(1, total_this))*100}%;background:var(--bad)"></span>
+          <span style="width:{(soon_count/max(1, total_this))*100}%;background:var(--warn)"></span>
+          <span style="width:{(rout_count/max(1, total_this))*100}%;background:var(--muted)"></span>
+        </div>
+      </div>
+
+      <div class="dist-group">
+        <span class="dist-label">Overall Case Status</span>
+        <div class="status-badges">
+          <span class="pill warn">Received: {all_received}</span>
+          <span class="pill warn">In Progress: {all_in_prog}</span>
+          <span class="pill ok">Resolved: {all_resolved}</span>
+        </div>
+        <div class="bar-stacked">
+          <span style="width:{(all_received/max(1, total_all))*100}%;background:var(--warn)"></span>
+          <span style="width:{(all_in_prog/max(1, total_all))*100}%;background:#4FC1C9"></span>
+          <span style="width:{(all_resolved/max(1, total_all))*100}%;background:var(--ok)"></span>
+        </div>
+      </div>
+
+      <div class="dist-group">
+        <span class="dist-label">Resolution Efficiency</span>
+        <p class="muted" style="margin:0;font-size:.85rem">
+          Overall resolution rate: <b>{round((all_resolved / max(1, total_all)) * 100)}%</b> ({all_resolved} of {total_all} cases closed). Median time to resolution: <b>{med_days if med_days is not None else '—'} days</b>.
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Section: Category Trend Table -->
+  <section class="panel" style="margin-bottom:1.8rem">
+    <div class="panel-header">
+      <h2>Ragging Taxonomy &amp; Behaviour Trends</h2>
+      <span>UGC classification matrix</span>
+    </div>
+    <table class="report-table" aria-label="Category comparison table">
+      <thead>
+        <tr>
+          <th>Incident Category</th>
+          <th>This Week</th>
+          <th>Last Week</th>
+          <th>Trend</th>
+          <th>Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        {type_table_html}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section: Spatial Distribution (Generalised Hotspots) -->
+  <section class="panel" style="margin-bottom:2.2rem">
+    <div class="panel-header">
+      <h2>Spatial Hotspots (Generalised Locations)</h2>
+      <span>k-anonymized campus zones</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+      <div>
+        {loc_table_html}
+      </div>
+      <div style="background:var(--surface-2);border-radius:12px;padding:1rem 1.2rem;font-size:.86rem;color:var(--muted);line-height:1.5">
+        <b style="color:var(--ink);display:block;margin-bottom:.3rem">Generalization Guarantee:</b>
+        Specific room numbers, individual wing identifiers, and exact timestamps are mathematically generalized before release to prevent triangulation. Reports are aggregated to campus zones (e.g. <i>Hostel B</i>, <i>Canteen</i>) shared by at least k={K} distinct complaints.
+      </div>
+    </div>
+  </section>
+
+  <!-- Sign-Off & Regulatory Compliance -->
+  <footer class="sign-off-section">
+    <div class="compliance-badge">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      UGC Regulations (2009) &amp; Institutional Anti-Ragging Mandate Compliant
+    </div>
+    <p class="muted" style="font-size:.84rem;margin:0 0 1.5rem">
+      This document constitutes the official anonymized weekly log of the Institutional Anti-Ragging Cell. Generated autonomously by Unsigned under zero-persistence guarantees. No raw student submissions or identity markers were processed into disk storage.
+    </p>
+
+    <div class="signatures-grid">
+      <div class="sig-box">
+        <b>Chairperson</b>
+        <span>Anti-Ragging Squad / Cell</span>
+      </div>
+      <div class="sig-box">
+        <b>Dean of Student Welfare</b>
+        <span>Student Affairs Directorate</span>
+      </div>
+      <div class="sig-box">
+        <b>Proctorial Board</b>
+        <span>Campus Discipline Committee</span>
+      </div>
+    </div>
+  </footer>
+
 </div>
-<h2>By type</h2><table><tr><th>Type</th><th>This week</th><th>Last week</th></tr>{rows_html or '<tr><td colspan=3>none</td></tr>'}</table>
-<h2>Where (generalised)</h2><ul>{loc_html or '<li>none</li>'}</ul>
-<h2>Status</h2><p>Received {sum(1 for r in rows if r['status']=='received')} · In progress {sum(1 for r in rows if r['status']=='in_progress')} · Resolved {sum(1 for r in rows if r['status']=='resolved')}</p>
-<p class="muted">Privacy: raw complaint text is never stored; cards are released only at a granularity shared by at least {K} cards.</p>
-</main></body></html>"""
+<script>
+(function() {{
+  const total = {total_this};
+  const valEl = document.getElementById("pieCenterVal");
+  const labEl = document.getElementById("pieCenterLabel");
+  function setCenter(v, l, c) {{
+    if (valEl) {{
+      valEl.textContent = Number(v).toLocaleString();
+      valEl.style.color = c || "";
+    }}
+    if (labEl) {{
+      labEl.textContent = l;
+      labEl.style.color = c ? "var(--ink)" : "";
+    }}
+  }}
+  document.querySelectorAll(".pie-slice, .legend-row").forEach(el => {{
+    el.addEventListener("mouseenter", () => {{
+      const v = el.dataset.value;
+      const l = el.dataset.label;
+      const c = el.dataset.color;
+      if (v != null) setCenter(v, l, c);
+    }});
+    el.addEventListener("mouseleave", () => {{
+      setCenter(total, "TOTAL", "");
+    }});
+  }});
+}})();
+</script>
+</body>
+</html>"""
 
 
 # ----------------------------------------------------------------- demo: the attacker as a product feature
