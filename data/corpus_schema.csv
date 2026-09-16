@@ -1,0 +1,11 @@
+column,type,values,notes
+author,string,A01..A40,assigned code; never a name
+text,string,free text,the complaint as written (Hinglish / Marathi-English / English); emoji and punctuation preserved
+distress,int,0 none | 1 low | 2 high,annotator label (two annotators; adjudicated)
+urgency,string,routine | soon | immediate,annotator label
+types,string,semicolon list of: verbal_abuse; physical; coercion_forced_acts; exclusion_social; sexual_harassment; extortion_financial; cyber; none,multi-label
+sarcasm,int,0 | 1,does the text use sarcasm/irony to express the complaint
+mundane,int,0 | 1,1 = non-ragging campus complaint (hard negative)
+location_span,string,free text,exact words naming the place (blank if none)
+time_span,string,free text,exact words naming the time (blank if none)
+actor_span,string,free text,exact words naming who (seniors / classmates / ...) (blank if none)

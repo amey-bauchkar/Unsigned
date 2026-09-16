@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Unsigned — say it, stay unsigned</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  main { max-width:720px; margin:0 auto; padding:1.6rem 1.25rem 5rem; }
+  .top { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  .brand { font:800 .8rem var(--ui); letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); }
+  .top a { font-size:.85rem; color:var(--muted); text-decoration:none; }
+  .hero { margin:2.2rem 0 1.6rem; }
+  .hero h1 { font:500 2.6rem/1.05 var(--serif); letter-spacing:-.015em; }
+  .hero h1 em { font-style:italic; color:var(--accent-ink); }
+  .hero p { font:400 1.12rem/1.5 var(--serif); color:var(--muted); max-width:50ch; margin-top:.8rem; }
+
+  /* the promise, drawn as three moments */
+  .how { display:grid; grid-template-columns:repeat(3,1fr); gap:.7rem; margin:1.4rem 0 2rem; }
+  .how div { background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:.8rem .9rem; }
+  .how b { display:block; font:700 .95rem var(--ui); margin-bottom:.2rem; }
+  .how span { font-size:.85rem; color:var(--muted); line-height:1.4; }
+  .how .n { font:600 .7rem var(--mono); color:var(--accent-ink); display:block; margin-bottom:.35rem; }
+
+  .steps { display:flex; gap:.4rem; margin:0 0 .8rem; }
+  .steps span { flex:1; height:4px; border-radius:2px; background:var(--rule); }
+  .steps span.on { background:var(--accent); }
+
+  .compose { position:relative; }
+  textarea { font:400 1.08rem/1.55 var(--serif); min-height:170px; border-radius:14px; }
+  .counter { position:absolute; right:.8rem; bottom:.6rem; font:500 .72rem var(--mono); color:var(--muted); }
+  .actions { display:flex; gap:.7rem; align-items:center; margin:.9rem 0; flex-wrap:wrap; }
+  .hint { color:var(--muted); font-size:.9rem; }
+
+  /* the card the committee sees */
+  .cardbox { border:1px solid var(--rule-strong); border-radius:16px; background:var(--surface); overflow:hidden; margin-top:1rem; animation:rise .5s var(--ease); }
+  .cardbox header { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.1rem; background:var(--surface-2); border-bottom:1px solid var(--rule); }
+  .cardbox .body { padding:1rem 1.1rem 1.1rem; }
+  .narr { font:400 1.15rem/1.5 var(--serif); }
+  .fields { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.6rem; margin-top:.9rem; }
+  .fields div { background:var(--surface-2); border-radius:10px; padding:.55rem .7rem; }
+  .fields .k { font:700 .64rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:block; }
+  .fields .v { font-weight:700; text-transform:capitalize; }
+  .facts { margin-top:1rem; padding-top:.9rem; border-top:1px dashed var(--rule-strong); }
+  .factshead { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; flex-wrap:wrap; }
+  .lexi { font:600 .72rem var(--mono); color:var(--ok); }
+  .fg { display:grid; grid-template-columns:110px 1fr; gap:.3rem .8rem; align-items:start; margin:.45rem 0; }
+  .fg .k { font:700 .66rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding-top:.45rem; }
+  .chips { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+  .chip { display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--rule-strong); background:var(--surface-2); border-radius:999px; padding:.28rem .6rem .28rem .7rem; font-size:.86rem; }
+  .chip.gen { border-color:var(--warn); background:var(--warn-wash); }
+  .chip .arrow { font:600 .72rem var(--mono); color:var(--warn); }
+  .chip button { border:0; background:none; padding:0 .1rem; font-weight:700; color:var(--muted); line-height:1; }
+  .chip button:hover { color:var(--bad); }
+  .chips select { width:auto; padding:.3rem .5rem; border-radius:999px; font-size:.86rem; background:var(--surface-2); }
+  .addsel { width:auto; padding:.28rem .5rem; border-radius:999px; font-size:.82rem; color:var(--muted); background:transparent; border:1px dashed var(--rule-strong); }
+  .from { font-size:.78rem; color:var(--muted); grid-column:2; margin-top:-.15rem; }
+  .safe { display:flex; align-items:center; gap:.7rem; margin-top:1rem; font-size:.9rem; color:var(--muted); }
+  .safe .meter { flex:1; }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+  /* shredding: the words leave */
+  .shred { position:relative; min-height:170px; font:400 1.08rem/1.55 var(--serif); padding:.8rem .95rem; border:1px solid var(--rule-strong); border-radius:14px; background:var(--surface); overflow:hidden; }
+  .shred span { display:inline-block; animation:fall 1.1s var(--ease) forwards; animation-delay:var(--d); }
+  @keyframes fall { 0% { opacity:1; transform:none; filter:blur(0); } 60% { opacity:.6; } 100% { opacity:0; transform:translateY(38px) rotate(var(--r)); filter:blur(3px); } }
+  .shred .stamp { position:absolute; inset:auto 0 0 0; text-align:center; padding:.5rem; font:600 .8rem var(--mono); color:var(--ok); background:linear-gradient(transparent, var(--surface) 40%); opacity:0; animation:rise .4s var(--ease) 1.2s forwards; }
+
+  .done { margin-top:1.2rem; }
+  .done h2 { font:500 1.6rem var(--serif); }
+  .passbox { background:var(--accent-wash); border:1px dashed var(--accent); border-radius:14px; padding:1rem 1.1rem; margin:.8rem 0; }
+  .passbox .lab { color:var(--accent-ink); }
+  .fb { margin-top:1.2rem; padding-top:.9rem; border-top:1px dashed var(--rule-strong); display:grid; gap:.5rem; }
+  .fbq { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; font-size:.92rem; }
+  .fbq span { flex:1; min-width:14rem; }
+  .fbq.done { color:var(--muted); }
+  .fbq.done button { display:none; }
+  footer { margin-top:3rem; font-size:.85rem; color:var(--muted); border-top:1px solid var(--rule); padding-top:1rem; }
+  @media (max-width:560px) { .how { grid-template-columns:1fr; } .hero h1 { font-size:2.1rem; } }
+</style>
+</head>
+<body class="student">
+<main>
+  <div class="top"><span class="brand">Unsigned · anti-ragging cell</span><a href="/status">Have a passphrase? Open your case →</a></div>
+
+  <section class="hero">
+    <h1>Say what happened.<br>Stay <em>unsigned.</em></h1>
+    <p>Write the way you text — Hinglish, Marathi, English, whatever comes out. Nobody will ever read these words. Not the committee, not the warden, not us. They become a card, and you will see that card before you send.</p>
+  </section>
+
+  <div class="how">
+    <div><span class="n">01</span><b>You write.</b><span>Your words stay on this screen and in memory for a few milliseconds.</span></div>
+    <div><span class="n">02</span><b>They become a card.</b><span>Categories only — what, where, when, how urgent. No sentences of yours, no style to trace.</span></div>
+    <div><span class="n">03</span><b>Your words are destroyed.</b><span>Nothing is stored. The committee acts on patterns, and can reply through a passphrase only you hold.</span></div>
+  </div>
+
+  <div class="steps" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-label="Step" id="stepsBar"><span class="on" id="st1"></span><span id="st2"></span><span id="st3"></span></div>
+
+  <section id="compose" class="compose">
+    <label for="text" class="lab" style="margin-bottom:.4rem">What happened</label>
+    <textarea id="text" placeholder="Kya hua? Kahan? Kab? Kaun log? — write it your way." maxlength="2000" aria-describedby="count hint"></textarea>
+    <span class="counter" id="count" aria-live="polite">0 / 2000</span>
+  </section>
+  <p id="demoRow" class="muted hidden">Demo: reference author <input id="demoAuthor" type="text" value="JUDGE" style="width:9em;display:inline-block;padding:.25rem .6rem"> — the attacker holds this author's earlier sample.</p>
+  <div class="actions">
+    <button id="preview" class="primary">Show me the card first</button>
+    <button id="submit" class="hidden">Send this card</button>
+    <button id="edit" class="ghost hidden">Edit my words</button>
+    <span class="hint" id="hint" role="status" aria-live="polite"></span>
+  </div>
+
+  <section id="cardbox" class="cardbox hidden" aria-live="polite" aria-label="The card the committee will see">
+    <header><span class="lab">The committee will see exactly this</span><span class="pill ok" id="safePill">no words of yours</span></header>
+    <div class="body">
+      <p class="narr" id="narr"></p>
+      <div class="fields" id="fields"></div>
+      <section class="facts" id="factsBox">
+        <div class="factshead"><span class="lab">Your facts — check them, fix them, remove them</span><span class="lexi" id="lexi"></span></div>
+        <p class="muted" style="margin:.2rem 0 .6rem">The committee's account is built only from these. Rare details are widened until at least <b id="kk">3</b> reports share them, so nothing points to one person.</p>
+        <div id="factGroups"></div>
+      </section>
+      <div id="flags"></div>
+      <div class="safe"><span>Traceable to your writing:</span><div class="meter"><i id="safeMeter" style="background:var(--ok)"></i></div><b id="safeVal">0%</b></div>
+      <p class="muted" style="margin-top:.8rem">If a detail here could point to you — a place only you go, something only you know — go back and change it. This card is all that leaves your phone.</p>
+    </div>
+  </section>
+
+  <section id="done" class="done hidden" role="status" aria-live="assertive">
+    <h2>Sent. Your words are gone.</h2>
+    <p>The card reaches the committee in <b id="delay"></b>. Your text was discarded after <b id="ms"></b> ms — nothing stores it, nothing shows it, and no channel can carry it.</p>
+    <div class="passbox">
+      <span class="lab">Your passphrase — the only way back</span>
+      <p class="token" id="token"></p>
+      <p class="muted" style="margin:.4rem 0 0">Write it down. Use it to read the committee's reply or add information. Nobody can recover it for you — that is the point.</p>
+    </div>
+    <div class="actions"><a id="statusLink" href="/status"><button class="primary">Open my case</button></a><button id="again" class="ghost">Report something else</button></div>
+    <div class="fb" id="fb">
+      <span class="lab">Two taps, no words — helps us make this safer</span>
+      <div class="fbq" data-q="understood_card"><span>Did you understand what the committee will see?</span><button class="small" data-a="yes">Yes</button><button class="small ghost" data-a="no">No</button></div>
+      <div class="fbq" data-q="felt_safe"><span>Did you feel your words were safe?</span><button class="small" data-a="yes">Yes</button><button class="small ghost" data-a="no">No</button></div>
+    </div>
+  </section>
+
+  <footer>If you are in danger right now, call the college anti-ragging helpline or the UGC helpline. This page is for reporting, not emergencies.</footer>
+</main>
+
+<script>
+const PAD = 2048;                                           // fixed request size — a side-channel rule
+const DEMO = new URLSearchParams(location.search).get("demo") === "1";
+const $ = id => document.getElementById(id);
+const post = async (u, b) => { const r = await fetch(u, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(b) }); const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.status); return j; };
+const pretty = v => Array.isArray(v) ? v.map(x => x.replaceAll("_"," ")).join(", ") : String(v ?? "").replaceAll("_"," ");
+const LABELS = { distress:"distress", urgency:"urgency", types:"what happened", location:"where", time_bucket:"when", actor_role:"who" };
+const GROUPS = [["acts","what they did"],["actor_role","who"],["actor_count","how many"],["location","where"],["time_bucket","when"],["frequency","how often"],["duration","how long"],["amount","money"],["digital","online / media"],["consequences","effect on you"],["public","others present"],["ongoing","still going on"]];
+const NICE = { none:"none", some:"some money", under_100:"under ₹100", "100_500":"₹100–500", "500_2000":"₹500–2000", over_2000:"over ₹2000", under_30m:"under 30 min", "30m_2h":"30 min – 2 h", "2h_5h":"2–5 hours", over_5h:"over 5 hours", unknown:"not said", once:"once", repeated:"more than once", daily:"every day", one:"one person", few:"a few", group:"a group", messaging_group:"messaging group", direct_messages:"direct messages", cant_focus:"can't focus", sleep_loss:"can't sleep", missed_classes:"missing classes" };
+const SPAN_KEY = { acts:"acts", digital:"digital", consequences:"consequences", amount:"amount", duration:"duration", actor_role:"actor" };
+const nice = v => NICE[v] ?? pretty(v);
+let facts = null, options = null, override = null;
+if (DEMO) $("demoRow").classList.remove("hidden");
+const step = n => { [1,2,3].forEach(i => $("st"+i).classList.toggle("on", i <= n)); $("stepsBar").setAttribute("aria-valuenow", n); };
+const busy = (btn, on, label) => { btn.disabled = on; btn.setAttribute("aria-busy", on ? "true" : "false"); if (label) btn.textContent = label; };
+const body = t => ({ text:t, padding:"x".repeat(Math.max(0, PAD - t.length)), demo_author: DEMO ? $("demoAuthor").value : null, facts_override: override });
+
+$("text").addEventListener("input", () => { $("count").textContent = `${$("text").value.length} / 2000`; });
+
+function renderCard(r, safe) {
+  const card = r.card;
+  $("narr").textContent = card.narrative;
+  $("fields").innerHTML = Object.keys(LABELS).map(k => `<div><span class="k">${LABELS[k]}</span><span class="v">${pretty(card[k]) || "—"}</span></div>`).join("");
+  $("flags").innerHTML = (r.flags||[]).map(f => `<div class="flag">${f}</div>`).join("");
+  if (r.lexicon) $("lexi").textContent = `${r.lexicon.tokens} words in the account · ${r.lexicon.foreign} of them yours`;
+  $("cardbox").classList.remove("hidden");
+  setTimeout(() => { $("safeMeter").style.width = Math.max(2, safe*100) + "%"; $("safeVal").textContent = Math.round(safe*100) + "%"; }, 40);
+}
+
+function renderFacts(r) {
+  facts = JSON.parse(JSON.stringify(r.facts)); options = r.options;
+  const status = {}; (r.fact_status || []).forEach(s => { status[s.field + ":" + s.original] = s; });
+  const spans = r.spans || {};
+  const arrow = (field, v) => { const st = status[field + ":" + v]; return st && st.status === "generalised" ? `<span class="arrow">→ ${nice(st.released)}</span>` : ""; };
+  const isGen = (field, v) => { const st = status[field + ":" + v]; return st && st.status === "generalised"; };
+  const chip = (field, v) => `<span class="chip ${isGen(field, v) ? "gen" : ""}">${nice(v)}${arrow(field, v)}<button title="remove" data-f="${field}" data-v="${v}">✕</button></span>`;
+  const sel = (field, v) => `<span class="chip ${isGen(field, v) ? "gen" : ""}" style="padding-left:.2rem"><select data-f="${field}">${options[field].map(o => `<option value="${o}" ${o===v?"selected":""}>${nice(o)}</option>`).join("")}</select>${arrow(field, v)}</span>`;
+  const bool = (field, v) => `<span class="chip" style="padding-left:.2rem"><select data-f="${field}"><option value="1" ${v?"selected":""}>yes</option><option value="0" ${!v?"selected":""}>no</option></select></span>`;
+  $("factGroups").innerHTML = GROUPS.map(([field, label]) => {
+    const v = facts[field]; let inner;
+    if (Array.isArray(v)) inner = v.map(x => chip(field, x)).join("") + `<select class="addsel" data-add="${field}"><option value="">+ add</option>${options[field].filter(o => !v.includes(o)).map(o => `<option value="${o}">${nice(o)}</option>`).join("")}</select>`;
+    else if (typeof v === "boolean") inner = bool(field, v);
+    else inner = sel(field, v);
+    const from = spans[SPAN_KEY[field]] || [];
+    return `<div class="fg"><span class="k">${label}</span><div class="chips">${inner}</div>${from.length ? `<span class="from">from your words: “${from.slice(0,4).join("”, “")}”</span>` : ""}</div>`;
+  }).join("");
+  $("factGroups").querySelectorAll("button[data-f]").forEach(b => b.onclick = () => { facts[b.dataset.f] = facts[b.dataset.f].filter(x => x !== b.dataset.v); repreview(); });
+  $("factGroups").querySelectorAll("select[data-f]").forEach(el => el.onchange = () => { const f = el.dataset.f; facts[f] = typeof facts[f] === "boolean" ? el.value === "1" : el.value; repreview(); });
+  $("factGroups").querySelectorAll("select[data-add]").forEach(el => el.onchange = () => { if (el.value) { facts[el.dataset.add].push(el.value); repreview(); } });
+}
+
+async function repreview() {
+  override = facts; $("factGroups").setAttribute("aria-busy", "true");
+  try { const r = await post("/preview", body($("text").value.trim())); renderCard(r, 0); renderFacts(r); } catch (e) { $("hint").textContent = e.message; }
+  finally { $("factGroups").setAttribute("aria-busy", "false"); }
+}
+
+$("preview").onclick = async () => {
+  const t = $("text").value.trim();
+  if (t.length < 5) { $("hint").textContent = "Write a few words first."; return; }
+  $("hint").textContent = ""; override = null;
+  busy($("preview"), true, "Reading…");
+  try {
+    const r = await post("/preview", body(t));
+    renderCard(r, 0); renderFacts(r);
+    step(2); $("preview").classList.add("hidden"); $("submit").classList.remove("hidden"); $("edit").classList.remove("hidden");
+    $("cardbox").scrollIntoView({ behavior:"smooth", block:"nearest" });
+  } catch (e) { $("hint").textContent = e.message; }
+  finally { busy($("preview"), false, "Show me the card first"); }
+};
+$("edit").onclick = () => { step(1); override = null; $("submit").classList.add("hidden"); $("edit").classList.add("hidden"); $("preview").classList.remove("hidden"); $("cardbox").classList.add("hidden"); $("text").focus(); };
+
+function shred(text) {
+  // The same words, each one falling away — the moment the product is about.
+  const box = document.createElement("div"); box.className = "shred"; box.id = "shredBox";
+  const words = text.split(/(\s+)/);
+  box.innerHTML = words.map(w => /^\s+$/.test(w) ? w : `<span style="--d:${(Math.random()*0.6).toFixed(2)}s;--r:${(Math.random()*30-15).toFixed(0)}deg">${w.replace(/</g,"&lt;")}</span>`).join("")
+    + `<div class="stamp">✓ raw text discarded — nothing stored</div>`;
+  $("compose").replaceWith(box);
+}
+
+$("submit").onclick = async () => {
+  const t = $("text").value.trim();
+  busy($("submit"), true, "Sending…");
+  try {
+    const r = await post("/submit", body(t));
+    shred(t);
+    step(3);
+    $("submit").classList.add("hidden"); $("edit").classList.add("hidden"); $("factsBox").classList.add("hidden");
+    const a = r.audit || {};
+    renderCard({ card:r.card, flags:[], lexicon:{ tokens:a.narrative_tokens, foreign:a.foreign_tokens } }, a.released_p_true != null ? a.released_p_true : 0);
+    $("delay").textContent = r.release_in_seconds < 120 ? `${r.release_in_seconds} seconds` : `${Math.round(r.release_in_seconds/60)} minutes`;
+    $("ms").textContent = r.raw_discarded_after_ms;
+    $("token").textContent = r.token;
+    $("statusLink").href = "/status#" + encodeURIComponent(r.token);
+    setTimeout(() => { $("done").classList.remove("hidden"); $("done").scrollIntoView({ behavior:"smooth", block:"start" }); }, 1300);
+  } catch (e) { $("hint").textContent = e.message; busy($("submit"), false, "Send this card"); }
+};
+$("again").onclick = () => location.reload();
+document.querySelectorAll(".fbq button").forEach(b => b.onclick = async () => {
+  const q = b.closest(".fbq"); q.classList.add("done"); q.querySelector("span").textContent += " — thank you";
+  try { await post("/api/feedback", { question: q.dataset.q, answer: b.dataset.a }); } catch (e) {}
+});
+
+</script>
+</body>
+</html>

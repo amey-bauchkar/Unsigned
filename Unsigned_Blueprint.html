@@ -1,0 +1,875 @@
+<title>Unsigned Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground:#F5F6F8; --surface:#FFFFFF; --ink:#1B2130; --muted:#5E6675; --rule:#D9DDE4; --rule-strong:#B9C0CB;
+  --accent:#B8720A; --accent-ink:#7A4B04; --accent-wash:#FBF1DC;
+  --ok:#2F7A4E; --ok-wash:#E4F3EA; --bad:#B4392F; --bad-wash:#F8E6E4;
+  --code-bg:#EEF0F4;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#14181F; --surface:#1C222B; --ink:#E8EBF0; --muted:#9AA3B2; --rule:#2C3440; --rule-strong:#3D4756;
+    --accent:#F2B441; --accent-ink:#F7CF7A; --accent-wash:#2B2415;
+    --ok:#5FCB8A; --ok-wash:#17301F; --bad:#F07B71; --bad-wash:#3A1D1A;
+    --code-bg:#232A35;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:#14181F; --surface:#1C222B; --ink:#E8EBF0; --muted:#9AA3B2; --rule:#2C3440; --rule-strong:#3D4756;
+  --accent:#F2B441; --accent-ink:#F7CF7A; --accent-wash:#2B2415;
+  --ok:#5FCB8A; --ok-wash:#17301F; --bad:#F07B71; --bad-wash:#3A1D1A;
+  --code-bg:#232A35;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.6; }
+a { color:var(--accent-ink); text-decoration-color:var(--accent); text-underline-offset:3px; }
+a:focus-visible, button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+h1,h2,h3,h4 { font-family:var(--display); text-wrap:balance; line-height:1.15; margin:0; }
+h2 { font-size:1.6rem; font-weight:800; letter-spacing:-0.01em; margin-top:3.2rem; padding-top:1.4rem; border-top:1px solid var(--rule-strong); }
+h3 { font-size:1.15rem; font-weight:700; margin-top:2rem; }
+h4 { font-size:1rem; font-weight:700; margin-top:1.4rem; }
+p, ul, ol { margin:0.9rem 0; }
+li { margin:0.3rem 0; }
+strong { font-weight:600; }
+code { font-family:var(--mono); font-size:0.86em; background:var(--code-bg); padding:0.08em 0.35em; border-radius:3px; }
+blockquote { margin:1.2rem 0; padding:0.9rem 1.2rem; border-left:3px solid var(--accent); background:var(--accent-wash); font-style:italic; }
+blockquote p { margin:0; }
+
+.wrap { display:grid; grid-template-columns:260px minmax(0,1fr); gap:3rem; max-width:1240px; margin:0 auto; padding:0 1.5rem 5rem; }
+.rail { position:sticky; top:0; align-self:start; max-height:100vh; overflow-y:auto; padding:1.6rem 0 2rem; border-right:1px solid var(--rule); }
+.rail .brand { font-family:var(--display); font-weight:800; font-size:0.85rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
+.rail ol { list-style:none; margin:0; padding:0; }
+.rail li { margin:0; }
+.rail a { display:flex; gap:0.6rem; align-items:baseline; padding:0.28rem 0.8rem 0.28rem 0; font-family:var(--display); font-size:0.8rem; font-weight:500; color:var(--muted); text-decoration:none; line-height:1.3; }
+.rail a:hover { color:var(--ink); }
+.rail a .n { font-family:var(--mono); font-size:0.7rem; color:var(--accent); min-width:1.4em; text-align:right; }
+main { min-width:0; max-width:72ch; }
+
+header.top { padding:2.4rem 0 0; }
+.eyebrow { font-family:var(--display); font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent-ink); }
+h1 { font-size:2.6rem; font-weight:800; letter-spacing:-0.02em; margin:0.5rem 0 0.8rem; }
+.lede { font-size:1.05rem; color:var(--muted); max-width:62ch; }
+
+.verdict { margin:2rem 0 0; background:var(--surface); border:1px solid var(--rule-strong); border-radius:6px; overflow:hidden; }
+.verdict .head { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:0.8rem 1.2rem; background:var(--accent-wash); border-bottom:1px solid var(--rule); }
+.verdict .head .lab { font-family:var(--display); font-weight:700; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-ink); }
+.pill { font-family:var(--mono); font-size:0.75rem; padding:0.2em 0.6em; border-radius:999px; border:1px solid currentColor; }
+.pill.ok { color:var(--ok); background:var(--ok-wash); }
+.pill.bad { color:var(--bad); background:var(--bad-wash); }
+.verdict .main { padding:1.2rem 1.2rem 1rem; }
+.verdict .id { font-family:var(--mono); font-size:0.9rem; color:var(--muted); }
+.verdict .title { font-family:var(--display); font-size:1.7rem; font-weight:800; letter-spacing:-0.01em; margin:0.2rem 0 0.4rem; }
+.verdict .sub { color:var(--muted); font-size:1rem; margin:0; }
+.signals { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); }
+.signals div { padding:0.8rem 1.2rem; border-right:1px solid var(--rule); }
+.signals div:last-child { border-right:0; }
+.signals .k { font-family:var(--display); font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+.signals .v { font-family:var(--mono); font-size:1.15rem; font-weight:500; font-variant-numeric:tabular-nums; }
+.signals .v small { font-size:0.7rem; color:var(--muted); margin-left:0.3em; }
+.runners { display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid var(--rule); }
+.runners div { padding:0.8rem 1.2rem; font-size:0.95rem; }
+.runners div + div { border-left:1px solid var(--rule); }
+.runners .k { font-family:var(--display); font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); display:block; }
+.runners .id { font-family:var(--mono); font-size:0.8rem; }
+
+.timeline { display:grid; grid-template-columns:repeat(4,1fr); gap:0.8rem; margin:1.4rem 0 0; }
+.tl { display:grid; gap:0.1rem; padding:0.7rem 0.9rem; border:1px solid var(--rule); border-radius:4px; background:var(--surface); }
+.tl .when { font-family:var(--mono); font-size:0.78rem; color:var(--accent-ink); }
+.tl .name { font-family:var(--display); font-weight:700; font-size:0.95rem; }
+.tl .sub { font-size:0.85rem; color:var(--muted); }
+.tl .left { font-family:var(--mono); font-size:0.72rem; color:var(--muted); margin-top:0.3rem; }
+.tl:first-child { border-color:var(--accent); }
+
+.tbl { overflow-x:auto; margin:1rem 0 1.4rem; border:1px solid var(--rule); border-radius:4px; background:var(--surface); }
+table { border-collapse:collapse; width:100%; font-size:0.86rem; line-height:1.4; }
+th, td { text-align:left; vertical-align:top; padding:0.55rem 0.75rem; border-bottom:1px solid var(--rule); }
+th { font-family:var(--display); font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); background:var(--ground); position:sticky; top:0; }
+tr:last-child td { border-bottom:0; }
+td:first-child { font-family:var(--mono); font-size:0.8rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+td strong { font-weight:600; }
+.foot { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule); font-size:0.85rem; color:var(--muted); }
+
+@media (max-width: 1080px) {
+  .wrap { grid-template-columns:1fr; gap:1rem; }
+  .rail { position:static; max-height:none; border-right:0; border-bottom:1px solid var(--rule); padding:1rem 0; }
+  .rail ol { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:0 1rem; }
+  main { max-width:none; }
+  .signals { grid-template-columns:repeat(2,1fr); }
+  .signals div:nth-child(2) { border-right:0; }
+  .signals div:nth-child(-n+2) { border-bottom:1px solid var(--rule); }
+  .timeline { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width: 600px) {
+  body { font-size:16px; }
+  h1 { font-size:2rem; }
+  .runners { grid-template-columns:1fr; }
+  .runners div + div { border-left:0; border-top:1px solid var(--rule); }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior:smooth; } }
+pre { font-family:var(--mono); font-size:0.78rem; line-height:1.45; background:var(--code-bg); border:1px solid var(--rule); border-radius:4px; padding:0.9rem 1rem; overflow-x:auto; margin:1rem 0 1.4rem; }
+pre code { background:none; padding:0; font-size:inherit; }
+.banner { display:flex; gap:0.8rem; align-items:baseline; margin:1.4rem 0 0; padding:0.7rem 1rem; border:1px solid var(--accent); border-radius:4px; background:var(--accent-wash); font-size:0.95rem; }
+.banner .lab { font-family:var(--display); font-weight:700; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-ink); white-space:nowrap; }
+.wrap, main, .rail, .verdict, .signals div, .runners div { min-width:0; }
+.verdict .title, .signals .v, h1 { overflow-wrap:anywhere; }
+.wrap { overflow-x:clip; }
+
+</style>
+
+<div class="wrap">
+  <nav class="rail" aria-label="Sections">
+    <div class="brand">Unsigned Blueprint</div>
+    <ol><li><a href="#0-the-thesis"><span class="n">0</span>The thesis</a></li>
+<li><a href="#1-the-problem-statement-decomposed"><span class="n">1</span>The problem statement, decomposed</a></li>
+<li><a href="#2-what-other-teams-will-build-and-how-we-differ"><span class="n">2</span>What other teams will build, and how we differ</a></li>
+<li><a href="#3-product-definition"><span class="n">3</span>Product definition</a></li>
+<li><a href="#4-the-privacy-architecture-what-provably-impossible-means-honestly"><span class="n">4</span>The privacy architecture — what &quot;provably impossible&quot; means, honestly</a></li>
+<li><a href="#4a-facts-not-fingerprints-the-style-free-account-engine-built-15-sep"><span class="n">4A</span>Facts, not fingerprints — the Style-Free Account engine (built 15 Sep)</a></li>
+<li><a href="#5-data-availability-collection-labels-ground-truth"><span class="n">5</span>Data — availability, collection, labels, ground truth</a></li>
+<li><a href="#6-aiml-architecture"><span class="n">6</span>AI/ML architecture</a></li>
+<li><a href="#7-system-architecture"><span class="n">7</span>System architecture</a></li>
+<li><a href="#8-the-prototype-repository-layout-and-build-order"><span class="n">8</span>The prototype — repository layout and build order</a></li>
+<li><a href="#8a-prototype-status-the-complete-app-built-and-tested-on-14-sep-unsigned"><span class="n">8A</span>Prototype status — the complete app, built and tested on 14 Sep (unsigned/)</a></li>
+<li><a href="#9-evaluation-what-evaluatepy-prints-with-the-run-date"><span class="n">9</span>Evaluation — what evaluate.py prints (with the run date)</a></li>
+<li><a href="#10-the-live-demo-six-minutes"><span class="n">10</span>The live demo (six minutes)</a></li>
+<li><a href="#11-scoring-on-the-eight-official-criteria"><span class="n">11</span>Scoring on the eight official criteria</a></li>
+<li><a href="#12-hostile-judge-qa"><span class="n">12</span>Hostile-judge Q&amp;amp;A</a></li>
+<li><a href="#13-risks-and-elimination"><span class="n">13</span>Risks and elimination</a></li>
+<li><a href="#14-timeline-and-roles-today-is-14-sep"><span class="n">14</span>Timeline and roles (today is 14 Sep)</a></li>
+<li><a href="#15-deck-skeleton-12-slides"><span class="n">15</span>Deck skeleton (12 slides)</a></li>
+<li><a href="#16-facts-assumptions-verify"><span class="n">16</span>Facts, assumptions, VERIFY</a></li></ol>
+  </nav>
+  <main>
+    <header class="top">
+      <div class="eyebrow">MUSA CodeX 2026 · CX0105 · Artificial Intelligence &amp; Machine Learning · locked 14 Sep 2026 · software only · source of truth for build, deck and demo</div>
+      <h1>Unsigned</h1>
+      <p class="lede">The committee sees the danger, never the student. An anti-ragging early-warning system in which the student's words are never stored or shown: they are classified, turned into a style-free incident card, generalised until not unique, audited by a stylometry attacker built into the product, and discarded in milliseconds.</p>
+
+      <section class="verdict" aria-label="Status">
+        <div class="head"><span class="lab">Locked · prototype running</span><span class="pill ok">final solution · CX0105</span></div>
+        <div class="main">
+          <div class="id">Two ideas that separate us from every "we don't store the name" build</div>
+          <div class="title">Facts, not fingerprints &nbsp;+&nbsp; Attacker in the loop</div>
+          <p class="sub">The student's story becomes a fact graph, every identifying fact is widened until ≥ k reports share it, and a full account is regenerated from a 176-word lexicon — a runtime invariant refuses any word that is not ours. The strongest stylometry attacker we can build runs on every submission and shows, live, that it now links incidents, not people.</p>
+        </div>
+        <div class="signals">
+          <div><span class="k">Attacker on raw text</span><div class="v">97%<small>dev seed · chance 17%</small></div></div>
+          <div><span class="k">Attacker on accounts</span><div class="v">11%<small>chance 17% · dev seed</small></div></div>
+          <div><span class="k">Raw text discarded</span><div class="v">32 ms<small>median</small></div></div>
+          <div><span class="k">Round 1</span><div class="v">16 Sep<small>in 2 days</small></div></div>
+        </div>
+        <div class="runners">
+          <div><span class="k">Evidence rule</span>Dev-seed numbers are smoke tests only. Slides carry numbers from <code>evaluate.py</code> on the real 30–40-author corpus, with the run date.</div>
+          <div><span class="k">Privacy claim</span>Provable for the channels we control (architecture, card channel, k-anonymity, metadata); measured against the strongest attacker we could build for the one we can't remove.</div>
+        </div>
+      </section>
+    </header>
+
+    <h2 id="0-the-thesis">0. The thesis</h2>
+<p>Removing the name from a complaint is not anonymity. Punctuation habits, spelling variants, emoji, sentence rhythm — a student's <em>style</em> — link anonymous complaints to each other and, with one known writing sample, to a person. Every existing "anonymous complaint box" leaks this way. <strong>Unsigned never shows the committee what the student wrote.</strong> The student's text is consumed on a college laptop by a pipeline that classifies distress and urgency, decomposes the story into a <strong>fact graph</strong> of closed values, generalises every identifying fact until it is not unique, <strong>regenerates a full account from Unsigned's own lexicon</strong> — so the committee reads what happened in our words, never theirs — discards the raw text within milliseconds, and continuously <strong>attacks its own output</strong> with the strongest stylometry model it can build. The committee sees the danger, the facts and the pattern — never the student.</p>
+<h2 id="1-the-problem-statement-decomposed">1. The problem statement, decomposed</h2>
+<p>Exact text (KNOWN): <em>"A college anti-ragging cell wants to spot distress signals hidden in anonymous student complaint text — sarcasm, coded slang, mixed languages — but must never be able to identify the student who wrote it, even indirectly through writing style. Build an NLP early-warning classifier that works under this strict anonymity constraint, where re-identification itself must be provably impossible. Twist: Word choice and punctuation habits alone can fingerprint a student across multiple anonymous complaints — the system must actively strip or randomize stylistic cues it doesn't need for classification, not just remove the name field."</em></p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Requirement</th>
+<th>Unsigned's answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>Spot <strong>distress</strong> in sarcasm, slang, mixed languages</td>
+<td>Code-mixed (Hinglish / Marathi-English) classifier with distress, urgency, type and sarcasm heads; honest F1 on the sarcastic subset</td>
+</tr>
+<tr>
+<td>R2</td>
+<td><strong>Never identify</strong> the student, even indirectly</td>
+<td>Raw text never stored or displayed; committee sees cards only</td>
+</tr>
+<tr>
+<td>R3</td>
+<td><strong>Provably</strong> impossible</td>
+<td>Four-part claim: architectural invariant · information-theoretic bound on the card channel · side channels closed · strongest attacker at chance on the residual channel (Section 4)</td>
+</tr>
+<tr>
+<td>R4</td>
+<td>Twist: <strong>style fingerprints across complaints</strong></td>
+<td>Style is not stripped — it is <em>never released</em>: the account the committee reads is regenerated from a closed lexicon over the fact graph; a runtime invariant refuses to emit any token outside that lexicon (Section 4A)</td>
+</tr>
+<tr>
+<td>R5</td>
+<td>Strip only what classification doesn't need</td>
+<td>Classification runs on the raw text in memory; only the classification's outputs and extracted facts leave the sanitiser</td>
+</tr>
+</tbody>
+</table></div>
+<p>Second-order problems the PS only implies, which we solve explicitly:</p>
+<ul>
+<li><strong>Content self-identification.</strong> "The only girl in the robotics club" identifies without any style. → A <strong>pre-submission privacy preview</strong>: the student sees the exact card the committee will see, with rare field combinations flagged, <em>before</em> sending.</li>
+<li><strong>Metadata side channels.</strong> Submission time, IP, device, request size all fingerprint. → No accounts, no IP logs, no cookies, time bucketed, randomised release delay by urgency, padded requests.</li>
+<li><strong>The cell can't act on a card alone.</strong> → Cards feed a <strong>pattern detector</strong> (location × time × type, rising-trend alerts) so the cell acts on the <em>pattern</em> — the hostel, the hour, the behaviour — not the person.</li>
+<li><strong>The student is left alone after reporting.</strong> → An <strong>anonymous two-way channel</strong>: a random passphrase token lets the student read the cell's reply and add information, with no identity.</li>
+</ul>
+<h2 id="2-what-other-teams-will-build-and-how-we-differ">2. What other teams will build, and how we differ</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>What they build</th>
+<th>Why it loses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>70%</td>
+<td>Sentiment/toxicity classifier + anonymous form; "we don't store the name"</td>
+<td>Style leak untouched; committee reads raw text; the twist is ignored</td>
+</tr>
+<tr>
+<td>Good</td>
+<td>Same + paraphrase with an LLM to "remove style"</td>
+<td>Unmeasured; LLM wrapper; paraphrase still leaks; raw text often still stored</td>
+</tr>
+<tr>
+<td>Very good</td>
+<td>Stylometric feature stripping (punctuation normalisation, spelling canonicalisation) + classifier</td>
+<td>Closer — but "stripping" is a losing race against an attacker; no measurement, no bound, no side-channel handling</td>
+</tr>
+<tr>
+<td><strong>Unsigned</strong></td>
+<td>Never release the text; release a generalised card; template narrative by construction; attacker-in-the-loop audit with a live linkability meter; bound on the card channel; side channels closed; pre-submission privacy preview; pattern-level alerts; anonymous reply channel</td>
+<td>Every claim is either provable by construction or measured against the strongest attacker we could build</td>
+</tr>
+</tbody>
+</table></div>
+<p>KNOWN context for the pitch: UGC's <em>Regulations on Curbing the Menace of Ragging in Higher Educational Institutions</em> (2009) require institutions to maintain anti-ragging committees and squads — every judge's college has one. VERIFY the exact regulation title and year before it goes on a slide.</p>
+<h2 id="3-product-definition">3. Product definition</h2>
+<p><strong>Name:</strong> Unsigned. <strong>One line:</strong> the committee sees the danger, never the student.</p>
+<p><strong>Users:</strong> (1) the student reporting — on their phone, from anywhere on the college network; (2) the anti-ragging cell / squad — the console on one college laptop; (3) the warden / mentor who receives an urgent alert; (4) the institution — audit and compliance reports.</p>
+<p><strong>Core loop:</strong> student writes → sees the card that <em>will</em> be released (privacy preview) → submits → pipeline classifies, extracts, generalises, audits, discards raw text → card released after a delay set by urgency → pattern detector updates → cell acts on patterns and urgent cards → student checks replies with the token.</p>
+<h2 id="4-the-privacy-architecture-what-provably-impossible-means-honestly">4. The privacy architecture — what "provably impossible" means, honestly</h2>
+<p>We do not claim "unbreakable". We claim four things, each with a different kind of evidence:</p>
+<ol>
+<li>
+<p><strong>Architectural invariant (verifiable in code and logs).</strong> Raw text exists only in process memory during the ~2-second pipeline run. It is never written to disk, never logged, never displayed, never sent anywhere. The audit log records <code>raw_discarded_after_ms</code> for every submission and the console shows it.</p>
+</li>
+<li>
+<p><strong>Information-theoretic bound on the card channel (provable by construction).</strong> A card is a tuple of categorical fields: distress {none, low, high} × urgency {routine, soon, immediate} × type {8 classes, multi-label capped at 3} × location (generalised hierarchy, ≤ 12 leaves) × time bucket {4} × actor role {3}. The narrative is generated from a template over those fields and adds no information. Therefore a card carries at most <code>log2(#distinct cards)</code> bits about <em>anything</em>, including the author — computed and displayed per deployment (order of 12–14 bits before generalisation). More importantly, <strong>no author style enters the card at all</strong>: the channel simply does not carry it.</p>
+</li>
+<li>
+<p><strong>k-anonymity on content (enforced).</strong> The released combination (location, time bucket, type) must appear in at least k cards (k = 3 by default) or the location/time is generalised up its hierarchy ("Hostel B, 2nd floor" → "Hostel B" → "hostels") until it does. Cards that cannot reach k are held in a <em>quarantine</em> the cell sees only as a count ("2 cards awaiting k") until more arrive or a time limit forces release at the coarsest level.</p>
+</li>
+<li>
+<p><strong>Empirical, for the one residual channel (measured).</strong> Optional <em>detail</em> text — when the cell truly needs specifics — is not edited but <strong>regenerated</strong>: facts are extracted first, then re-expressed by a translation round-trip and paraphrase so the output's style is the model's, not the student's. Before release, the strongest attacker we could build measures the <strong>style information</strong> in the released text as the total-variation distance between its author posterior on the released text and on a <em>null template with the same fields</em> — 0.00 by construction for a template-only card, &gt; 0 only if detail text carries style. Above a margin, the detail is dropped and the card ships template-only. (A forced-choice attacker's raw <em>confidence</em> on a template is meaningless — it will say "author X, 96%" about any English sentence — which is why the metric is information over the null, not confidence.) We report the attacker's accuracy on raw text (to prove it is strong) and on released cards (≤ chance, to prove they carry nothing).</p>
+</li>
+</ol>
+<p><strong>Side channels closed (design rules, all cheap):</strong> no accounts; no IP logging (server config, shown); no cookies or third-party scripts on the submission page; submission time stored only as a day bucket; release delay randomised — immediate urgency: 0–15 min, soon: 1–6 h, routine: next 6-hour batch — so arrival order cannot be matched to hallway observation; request bodies padded to a fixed size; the token is a random passphrase, stored hashed.</p>
+<p><strong>Scope statement for the slide:</strong> <em>provable for the channels we control (architecture, card channel, k-anonymity, metadata); measured against the strongest attacker we could build for the one channel we can't fully remove.</em> A judge who has thought about privacy will recognise this as the right shape of claim.</p>
+<h2 id="4a-facts-not-fingerprints-the-style-free-account-engine-built-15-sep">4A. Facts, not fingerprints — the Style-Free Account engine (built 15 Sep)</h2>
+<p>The gap it closes: a categorical card is private but lossy — <em>"you threw away the evidence"</em> is the question that would have sunk us. Paraphrasing the text (the original G1 plan) leaks style and cannot be proven. The engine dissolves the trade-off instead of picking a side.</p>
+<p><strong>How it works</strong> (<code>pipeline/facts.py</code>, <code>privacy/rarity.py</code>, <code>pipeline/narrate.py</code>):</p>
+<ol>
+<li><strong>Fact graph.</strong> The normalised text is decomposed into closed-vocabulary facts: 21 <em>acts</em> (forced standing, money demand, recording, sharing online, threats, unwanted contact, substance coercion…), actor role and count band, place, time bucket, frequency (once / repeated / daily), duration band, money band, digital artefacts, consequences (fear, loss of sleep, injury, missed classes…), whether others were present, whether it is still going on. Numbers are read from the raw text and <strong>banded</strong> (₹1500 → ₹500–2000; 3 ghante → 2–5 hours). Free text never enters a fact.</li>
+<li><strong>The student checks the facts.</strong> The privacy preview shows every fact as a chip with the words that produced it ("from your words: <em>khade</em>, <em>1500 rupees</em>, <em>whatsapp</em>"). The student removes a wrong chip, corrects a band, adds a missed act from the closed list. Edits are validated against the closed sets server-side; no free text is accepted.</li>
+<li><strong>Per-fact k-anonymity.</strong> Each <em>identifier</em> fact — where, when, how much, how long, how many, how often — is widened up its hierarchy until at least k released cards share it, and the student sees the arrow ("₹500–2000 → some money"). <strong>What happened is never suppressed</strong>: a single report of sexual harassment reaches the committee even if it is the only one; a single report naming "room 214 at 2:40 am" cannot.</li>
+<li><strong>Controlled generation.</strong> A fixed grammar turns the fact graph into a full account — <em>"A group of senior students made the reporter stand for two to five hours, demanded money (an unspecified amount) and recorded the reporter on the second floor of Hostel B at night. A messaging group and a video were involved. This has happened more than once. The reporter describes fear and loss of sleep."</em> — using only a 176-word lexicon built from the grammar's own fragments.</li>
+<li><strong>The invariant.</strong> <code>narrate()</code> tokenises its own output and <strong>raises</strong> if any token is outside the lexicon; the audit re-checks and reports <code>foreign_tokens</code> per card. Same facts → same words, always: variation cannot encode style because there is none.</li>
+</ol>
+<p><strong>What we can now claim, and how each claim is backed:</strong></p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Kind</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Not one of the student's words, spellings, emoji or punctuation reaches the committee</td>
+<td>provable by construction, enforced at runtime</td>
+<td>lexicon invariant; <code>evaluate.py</code>: <em>1,084 account words released, 0 outside the lexicon</em> (dev seed)</td>
+</tr>
+<tr>
+<td>The account channel is bounded</td>
+<td>provable</td>
+<td><code>narrative_capacity_bits</code> ≈ 54.7 bits — the fact space; none of it style</td>
+</tr>
+<tr>
+<td>The attacker cannot attribute accounts</td>
+<td>measured</td>
+<td>leave-one-out attribution on accounts ≤ chance (dev seed: 11% vs 17%); linkability AUC 0.45</td>
+</tr>
+<tr>
+<td>The attacker now links by <em>content</em>, not <em>author</em></td>
+<td>measured, shown live</td>
+<td>Present slide 4: on raw text its best pair is the true pair at 81% (next 2%); on accounts its best pair is a different one — two incidents at the same place</td>
+</tr>
+<tr>
+<td>The committee can act</td>
+<td>practical</td>
+<td>acts, place, time, frequency, money, media, consequences — in a sentence a warden can brief from</td>
+</tr>
+<tr>
+<td>Nothing a student types can reach the committee — for <em>any</em> writer</td>
+<td>adversarial, non-circular</td>
+<td>3,000 fuzzed inputs (Hinglish, Devanagari, emoji, HTML, URLs, names, injection lines) each with a planted canary: 0 canaries in accounts, 0 in stored cards, 0 student words, 0 foreign tokens</td>
+</tr>
+<tr>
+<td>Style never enters — same incident, any style, one account</td>
+<td>property test</td>
+<td>3 incidents × 7 styles → 3/3 identical accounts; the attacker attributes the 7 raw texts to 6 different authors</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Why competitors cannot match it in the room:</strong> it requires the insight to <em>replace</em> rather than <em>sanitise</em>, a fact schema and a Hinglish/Marathi cue lexicon, per-fact generalisation, a grammar with a runtime invariant, and an attacker to prove it — plus the honesty to say what it does not do: facts the extractor misses are the student's to add, and the student sees exactly what will be said.</p>
+<h2 id="5-data-availability-collection-labels-ground-truth">5. Data — availability, collection, labels, ground truth</h2>
+<h3 id="51-what-exists-publicly-verify-licences-and-current-download-paths-before-use">5.1 What exists publicly (VERIFY licences and current download paths before use)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>What it is</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SemEval-2020 Task 9 "SentiMix" Hinglish</td>
+<td>~17k+ code-mixed Hindi-English tweets with sentiment labels</td>
+<td>Domain pre-training and an auxiliary sentiment head</td>
+</tr>
+<tr>
+<td>HASOC (2020/2021) Hindi-English code-mixed subtasks</td>
+<td>Hate/offensive labels on code-mixed text</td>
+<td>Auxiliary "abusive language" head — helps detect verbal abuse in complaints</td>
+</tr>
+<tr>
+<td>L3Cube HingCorpus / HingBERT / HingRoBERTa</td>
+<td>Large roman-script Hinglish corpus and pretrained encoders (L3Cube, Pune)</td>
+<td>Best starting encoder for Hinglish</td>
+</tr>
+<tr>
+<td>L3Cube MahaSent / MahaHate + MahaBERT</td>
+<td>Marathi sentiment/hate datasets and encoders</td>
+<td>Marathi-English coverage for Mumbai colleges</td>
+</tr>
+<tr>
+<td>google/muril-base-cased; ai4bharat/IndicBERTv2</td>
+<td>Multilingual Indian-language encoders incl. transliterated text</td>
+<td>Alternative encoders</td>
+</tr>
+<tr>
+<td>PAN authorship attribution shared-task corpora</td>
+<td>Multi-author texts for authorship attribution</td>
+<td>Optional pre-training of the attacker</td>
+</tr>
+</tbody>
+</table></div>
+<p>None of these contains ragging complaints. They give the encoders and the auxiliary tasks; the in-domain data must be ours — and it is the one dataset that makes the privacy claim <em>real</em>.</p>
+<h3 id="52-the-unsigned-corpus-real-in-our-control-ready-by-17-sep">5.2 The Unsigned corpus (real, in our control, ready by 17 Sep)</h3>
+<p><strong>Who writes:</strong> 30–40 students from the team's college(s), consented, each writing <strong>≥ 5 short complaints</strong> (2–6 sentences) <em>as if</em> they were a first-year student. They are told to write the way they text — Hinglish or Marathi-English, their own punctuation, emoji, spelling — because the <em>style</em> must be real even though the <em>incidents</em> are fictional.</p>
+<p><strong>What each writer produces:</strong> 3 ragging-type complaints of varying severity (at least one sarcastic — "wow such a warm welcome from seniors, love standing for 3 hours"), 2 mundane campus complaints (mess, wifi, attendance) as hard negatives. Optional: 1 in a different mood to test within-author variance.</p>
+<p><strong>Collection:</strong> a Google Form: consent text → assigned author code (A01…A40) → five text boxes → optional "which language mix do you use?" Nothing else. ~175–200 texts.</p>
+<p><strong>Labels:</strong> two annotators label every text independently: <code>distress ∈ {0,1,2}</code>, <code>urgency ∈ {routine, soon, immediate}</code>, <code>type ⊆ {verbal_abuse, physical, coercion_forced_acts, exclusion_social, sexual_harassment, extortion_financial, cyber, none}</code>, <code>sarcasm ∈ {0,1}</code>, and free-text spans for <code>location</code>, <code>time</code>, <code>actor_role</code>. Disagreements resolved by discussion; <strong>Cohen's κ reported</strong> on the slide. Annotation guide is in <code>data/annotation_guide.md</code>.</p>
+<p><strong>Ground truth for the privacy experiment:</strong> authorship is known by construction (the author code). This is what makes the attack a real experiment, not a simulation.</p>
+<p><strong>Ethics on the slide:</strong> fictional incidents; informed consent; no real complaints are processed during the hackathon; the corpus is deleted after evaluation; the live demo uses team-written examples.</p>
+<h3 id="53-augmentation-training-only-never-in-reported-numbers">5.3 Augmentation (training only, never in reported numbers)</h3>
+<p>Back-translation variants, transliteration variants (romanisation spellings), emoji/punctuation perturbation for the <em>classifier</em> only — never for the attacker's evaluation set.</p>
+<h2 id="6-aiml-architecture">6. AI/ML architecture</h2>
+<p><strong>Governing rule:</strong> each model ships with an ablation; a model that doesn't beat its simpler baseline on held-out data ships disabled. No LLM anywhere in the pipeline.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Model</th>
+<th>Input → Output</th>
+<th>Method</th>
+<th>Data</th>
+<th>Ablation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>C0</strong> Baseline classifier</td>
+<td>text → distress, urgency, type, sarcasm</td>
+<td>Char + word n-gram TF-IDF → logistic regression (one per head). Always shipped; runs anywhere</td>
+<td>Corpus + public auxiliary sets</td>
+<td>The floor every other model must beat</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>C1</strong> Encoder classifier</td>
+<td>same</td>
+<td>Fine-tuned HingRoBERTa / MuRIL with four heads; auxiliary sentiment/abuse heads from public data; sarcasm-aware augmentation</td>
+<td>Corpus + public</td>
+<td>Macro-F1 vs C0; F1 on the sarcastic subset; false-alert rate on mundane complaints</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>X0</strong> Extractor</td>
+<td>text → location, time, actor role, behaviours</td>
+<td>Gazetteer (hostel/block/department names, time words in Hindi/Marathi/English) + regex + keyword taxonomy; C1's type probabilities</td>
+<td>Corpus spans</td>
+<td>Field accuracy vs annotators</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>X1</strong> Span model (optional)</td>
+<td>same</td>
+<td>Token classification head on the encoder</td>
+<td>Corpus spans</td>
+<td>Only if it beats X0</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>A1</strong> Stylometry attacker</td>
+<td>texts → author; pair → same-author probability</td>
+<td>Char 2–5-gram TF-IDF + style features (punctuation profile, emoji rate, caps ratio, word-length distribution, function-word frequencies, spelling-variant choices) → logistic regression / linear SVM; plus a fine-tuned encoder variant, ensembled</td>
+<td>Corpus (known authors)</td>
+<td>Accuracy@1 leave-one-text-out; pairwise linkability AUC — reported on raw text, normalised text, regenerated detail, and cards</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>N1</strong> Normaliser</td>
+<td>text → normalised text (internal only)</td>
+<td>Lowercase, punctuation canonicalisation, emoji removal, repeated-character squashing, Hinglish spelling canonicalisation (nhi/nai/nahi → nahi), digit normalisation</td>
+<td>Dictionary</td>
+<td>Attacker accuracy drop (this is <em>not</em> the privacy mechanism — it is a pre-processor for classification)</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>F1</strong> Fact extractor + <strong>N2</strong> controlled generator (Section 4A)</td>
+<td>text → fact graph → account</td>
+<td>Cue lexicons + number banding → closed facts; per-fact k-anonymity; grammar over a 176-word lexicon with a runtime invariant</td>
+<td>Corpus spans (for extractor coverage)</td>
+<td>Fact coverage on ragging texts; foreign tokens (must be 0); attacker attribution on accounts vs chance</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>K1</strong> Generaliser</td>
+<td>card → k-anonymous card</td>
+<td>Hierarchies for location and time; generalise until (location, time, type) appears ≥ k</td>
+<td>Cards</td>
+<td>k achieved; share of cards generalised</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>P1</strong> Pattern detector</td>
+<td>cards over time → alerts</td>
+<td>Counts per (location, time bucket, type) per week vs a Poisson baseline; alert when surprise exceeds threshold with ≥ m distinct cards</td>
+<td>Cards (replayed timeline for the demo, labelled simulated)</td>
+<td>Detection lead time on the replay</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Training / inference:</strong> C0, A1, X0, K1, P1 need no GPU and train in seconds. C1 fine-tunes in under an hour on a free Colab GPU and exports to ONNX for CPU inference. G1 is optional and heavy; if unavailable, cards ship template-only — and that is the <em>more</em> private configuration. Inference per submission: ~1–2 s on a laptop CPU without G1.</p>
+<p><strong>Explainability:</strong> every card carries "why": the top n-gram features behind the distress and type decisions (from C0/C1 attributions), the extracted spans that filled each field, the generalisation steps applied, and the audit result. The committee can see <em>why</em> a card is urgent without seeing the text.</p>
+<h2 id="7-system-architecture">7. System architecture</h2>
+<pre><code>Student phone ──HTTPS on college LAN──▶ Submission page (no cookies, no trackers, padded requests)
+      │  /preview  ─▶ Pipeline (in memory): N1 → C1|C0 → X0 → card → K1 → A1 audit ─▶ card preview + risk flags
+      │  /submit   ─▶ same, then: raw text discarded ▸ card queued with urgency-based delay ▸ token issued (hashed)
+                                                     │
+                     Release scheduler ─▶ SQLite (cards, audits, patterns, replies; never raw text)
+                                                     │
+                     Committee console ◀── FastAPI + WebSocket ──▶ P1 pattern detector ──▶ alerts (console, SMS/e-mail optional)
+                     Student status page (token) ◀──────────────▶ anonymous replies
+</code></pre>
+<p><strong>Backend (Python, FastAPI):</strong> <code>POST /preview</code> (returns the card that <em>would</em> be released, with rarity flags — nothing stored); <code>POST /submit</code> (runs the pipeline, discards raw text, queues the card, returns a passphrase token); <code>GET /cards</code> (released cards, generalised); <code>GET /patterns</code>; <code>GET /audit</code> (attacker results, leakage bound, k achieved, <code>raw_discarded_after_ms</code> distribution); <code>POST /cards/{id}/reply</code> (cell → student, via token); <code>GET /status/{token}</code>; <code>GET /eval/latest</code>.</p>
+<p><strong>Storage (SQLite, single laptop):</strong> <code>cards</code> (fields, generalisation level, urgency, released_at bucket, why-features), <code>audits</code> (per-card attacker score, decision), <code>patterns</code>, <code>replies</code>, <code>tokens</code> (hash only), <code>metrics</code>. There is no table for raw text; the schema is shown on a slide.</p>
+<p><strong>Submission page:</strong> plain HTML + minimal JS, served from the same laptop; QR code for the demo; the <em>privacy preview</em> renders the card and highlights any field combination that would currently be unique ("this combination matches fewer than 3 reports — we will generalise 'Hostel B, 2nd floor' to 'Hostel B'").</p>
+<p><strong>Console (React + Vite or plain HTML):</strong> three tabs — <strong>Patterns</strong> (map/heat grid of location × time × type with rising-trend alerts), <strong>Cards</strong> (released cards, urgent first, each with "why" and audit badge), <strong>Evidence</strong> (attacker accuracy raw vs released, leakage bits, k, discard latency, classifier metrics — all from <code>evaluate.py</code>, dated). A demo-only toggle "show what an attacker sees with raw text" drives the wow moment.</p>
+<p><strong>Deployment:</strong> one <code>docker compose up</code> or <code>python -m unsigned</code> on a college laptop; no cloud; optional SMS/e-mail for immediate-urgency alerts.</p>
+<p><strong>Failure handling:</strong> pipeline exception → submission acknowledged, card marked "needs manual triage" with <em>no text attached</em> (the raw text is still discarded); the student's token still works; the cell sees a count. Encoder unavailable → C0 baseline. Audit unavailable → template-only cards (fail closed to the more private mode).</p>
+<h2 id="8-the-prototype-repository-layout-and-build-order">8. The prototype — repository layout and build order</h2>
+<pre><code>unsigned/
+  pipeline/normalize.py      N1 lexical normaliser
+  pipeline/classify.py       C0 baseline heads (+ C1 loader when trained)
+  pipeline/extract.py        X0 gazetteer/regex extractor → card fields
+  pipeline/card.py           Card schema, template narrative, leakage bits
+  privacy/attacker.py        A1 stylometry attacker (fit / attribute / link)
+  privacy/kanon.py           K1 hierarchies and generalisation
+  privacy/audit.py           attacker-in-the-loop release decision
+  patterns/detect.py         P1 rising-pattern detector
+  api/app.py                 FastAPI: preview / submit / cards / patterns / audit / status
+  web/submit.html, console.html
+scripts/evaluate.py          every number for the slides, dated
+scripts/train_transformer.py C1 fine-tune (optional; needs transformers)
+data/collection_form.md, annotation_guide.md, corpus_schema.csv
+data/dev_seed.csv            team-written examples for smoke tests — never in reported numbers
+</code></pre>
+<p><strong>Build order:</strong> (1) corpus schema + dev seed + A1 attacker (the hook works on day one) → (2) N1 + C0 + X0 + card + K1 → (3) API + submission page + preview → (4) audit + console + Evidence tab → (5) <code>evaluate.py</code> on the real corpus → (6) C1 fine-tune → (7) P1 + replay → (8) G1 only if time remains.</p>
+<h2 id="8a-prototype-status-the-complete-app-built-and-tested-on-14-sep-unsigned">8A. Prototype status — the complete app, built and tested on 14 Sep (<code>unsigned/</code>)</h2>
+<p>Run: <code>python scripts/evaluate.py --train</code> → <code>python scripts/seed_demo.py</code> → <code>python -m unsigned --port 8000 --key committee</code>. Checks: 7 unit tests (<code>tests/test_pipeline.py</code>) and a 17-step end-to-end smoke test (<code>tests/smoke_api.py</code>) — all passing.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Surface / component</th>
+<th>Status</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Student: submission page</td>
+<td>built</td>
+<td>Warm-paper identity, serif voice. Write → <strong>Show me the card first</strong> (exact card, rarity flags, traceability meter) → <strong>Send</strong> → the words visibly <strong>shred</strong> away with a "raw text discarded" stamp → passphrase</td>
+</tr>
+<tr>
+<td>Student: case page</td>
+<td>built</td>
+<td>Passphrase → status timeline, committee replies, <strong>add information</strong> (threaded through the same pipeline)</td>
+</tr>
+<tr>
+<td>Committee: console (passcode)</td>
+<td>built</td>
+<td>Dark operations identity. <strong>Overview</strong> (KPIs, location × time heat grid with cells below k hidden, rising-pattern alerts with actions, cards-per-week, "needs you now") · <strong>Cases</strong> (filter chips, table, detail drawer with "why", linkability audit + raw toggle, thread, reply, status) · <strong>Privacy proof</strong> (pipeline stepper, attacker bars vs chance, try-it, k / latency / F1 tiles, dev-seed warning) · <strong>Demo setup</strong> (the three complaints for Present, reference samples) · weekly report</td>
+</tr>
+<tr>
+<td><strong>Present mode</strong></td>
+<td>built</td>
+<td>Nine full-screen slides computed live on the real models: hook → attacker reveal with animated link → shredding into cards → attacker on cards → live QR step with the meter flipping → heat grid + alert → measured proof → close. ← → keys, F fullscreen</td>
+</tr>
+<tr>
+<td>Sanitiser pipeline</td>
+<td>built</td>
+<td>normalize → classify (C0) → extract (X0) → card → k-anon → audit → discard; ~20 ms</td>
+</tr>
+<tr>
+<td>A1 attacker</td>
+<td>built</td>
+<td>97% attribution on dev-seed raw text (chance 17%); 92% after normalisation; ≤ chance on cards</td>
+</tr>
+<tr>
+<td>Audit metric</td>
+<td>built</td>
+<td>leak = TV distance vs a null template (0.00 for template cards); demo mode reports P(reference author</td>
+</tr>
+<tr>
+<td>K1 k-anonymity</td>
+<td>built</td>
+<td>stored at full detail, displayed at the level shared by ≥ k cards; groups match on location/time with any shared type</td>
+</tr>
+<tr>
+<td>P1 pattern detector</td>
+<td>built</td>
+<td>Poisson-surprise per location × time × type; on the seeded timeline: <em>hostel b · night · coercion — 7 cards</em></td>
+</tr>
+<tr>
+<td>Side channels</td>
+<td>built</td>
+<td>no accounts, no IP logs (access log off), no cookies, day buckets, urgency-randomised release delay, padded requests, no-store/no-referrer headers, flood control without identity</td>
+</tr>
+<tr>
+<td><strong>Non-circular proofs</strong></td>
+<td>built</td>
+<td><code>scripts/fuzz_release_channel.py</code>: 3,000 adversarial inputs with planted canary words → 0 canaries in any account or stored card, 0 student words, 0 foreign tokens · <code>scripts/style_invariance.py</code>: 3 incidents × 7 styles (lowercase, CAPS+emoji, formal, Marathi, SMS, sarcastic, Devanagari) → one identical account each while the attacker sees 6 authors in the raw texts · both in the test suite and on the Evidence tab / Present</td>
+</tr>
+<tr>
+<td>Rules layer (<code>pipeline/rules.py</code>)</td>
+<td>built</td>
+<td>transparent post-classifier rules (campus-services complaint with no act → not ragging; sarcasm about a real act → high distress); every firing recorded in <code>why</code>; under grouped CV the <strong>system</strong> cuts false alerts on mundane complaints 35% → 10% and lifts sarcastic-subset distress F1 0.52 → 0.63 — structurally, not by seed tuning</td>
+</tr>
+<tr>
+<td>Hallway-test instrument</td>
+<td>built</td>
+<td><code>data/user_study.md</code> protocol + one-tap anonymous feedback on the student page (<code>/api/feedback</code>, counts only) surfaced on the Evidence tab</td>
+</tr>
+<tr>
+<td>Number words</td>
+<td>built</td>
+<td>"three hours", "paanch sau rupees", "do ghante" band correctly</td>
+</tr>
+<tr>
+<td>Devanagari input</td>
+<td>built</td>
+<td><code>translit.py</code> — native-script Hindi/Marathi reach the same cues; tested</td>
+</tr>
+<tr>
+<td>Hardening after adversarial review</td>
+<td>built</td>
+<td>demo gating (<code>--no-demo</code>), latency padding, atomic model-file writes under a lock, FastAPI lifespan, ARIA + focus management + loading states, honest erasure copy, corpus importer</td>
+</tr>
+<tr>
+<td>C1 encoder fine-tune</td>
+<td>script ready</td>
+<td><code>scripts/train_transformer.py</code>; needs <code>transformers</code> and the real corpus; ships only if it beats C0</td>
+</tr>
+<tr>
+<td><strong>Style-Free Account engine</strong></td>
+<td>built</td>
+<td>fact graph (21 acts, banded numbers, Hinglish/Marathi cues) · student fact editor with spans and add/remove · per-fact k-anonymity with visible widening · 176-word lexicon grammar with runtime invariant · <code>foreign_tokens</code> in every audit · new evaluation metrics</td>
+</tr>
+</tbody>
+</table></div>
+<p>Dev-seed numbers are smoke tests. The Round 2 slide numbers come from <code>evaluate.py</code> on the real corpus, dated.</p>
+<h2 id="9-evaluation-what-evaluatepy-prints-with-the-run-date">9. Evaluation — what <code>evaluate.py</code> prints (with the run date)</h2>
+<ul>
+<li><strong>Attacker strength:</strong> A1 accuracy@1 on raw text, leave-one-text-out over N authors (chance = 1/N); pairwise linkability AUC.</li>
+<li><strong>Privacy result:</strong> the same attacker on normalised text, on regenerated detail (if G1 is on), and on cards — expected ≈ chance / AUC ≈ 0.5.</li>
+<li><strong>Leakage bound:</strong> <code>log2(#distinct cards)</code> for the deployed schema, before and after generalisation.</li>
+<li><strong>k-anonymity:</strong> k achieved on the released set; share of cards generalised; quarantine count.</li>
+<li><strong>Discard latency:</strong> distribution of <code>raw_discarded_after_ms</code>.</li>
+<li><strong>Classifier:</strong> C0 vs C1 macro-F1 per head (5-fold, grouped by author so no author leaks across folds); F1 on the sarcastic subset; false-alert rate on mundane complaints; κ between annotators.</li>
+<li><strong>Extractor:</strong> field accuracy vs annotators.</li>
+<li><strong>Pattern detector:</strong> lead time on the replayed timeline (labelled simulated).</li>
+<li><strong>Latency:</strong> per-submission pipeline time on the laptop.</li>
+</ul>
+<p>Nothing goes on a slide that this script did not print.</p>
+<h2 id="10-the-live-demo-six-minutes">10. The live demo (six minutes)</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Time</th>
+<th>On screen</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0:00</td>
+<td>Three anonymous complaints, no names</td>
+<td>"Two of these were written by the same student. Which two?" Judges guess.</td>
+</tr>
+<tr>
+<td>0:20</td>
+<td>A1 attacker output: pair (1, 3), 82%</td>
+<td>"Any warden with a laptop can do this. Deleting the name is not anonymity."</td>
+</tr>
+<tr>
+<td>0:50</td>
+<td>The naive system: sentiment score + raw text in a committee inbox</td>
+<td>"This is what every anonymous complaint box is. It leaks by design."</td>
+</tr>
+<tr>
+<td>1:30</td>
+<td>Unsigned submission page on a judge's phone (QR)</td>
+<td>The judge types a sarcastic Hinglish complaint. <strong>Privacy preview</strong> shows the exact card; "Hostel B, 2nd floor" is flagged rare and generalised before their eyes.</td>
+</tr>
+<tr>
+<td>2:30</td>
+<td>Submit → the words shred; the console shows the <strong>account</strong> — a full paragraph in our words, every fact a chip, the rare ₹ band visibly widened; <code>raw text discarded after 22 ms · 61 words, 0 of them the student's</code></td>
+<td>"That text no longer exists anywhere. This is what the committee reads."</td>
+</tr>
+<tr>
+<td>3:00</td>
+<td><strong>Linkability Audit meter:</strong> attacker tries to link the judge's card to their earlier complaint → 3% (chance). Toggle "what the attacker sees with raw text" → 82%. Red → green.</td>
+<td>The twist, solved and measured, on the judge's own words.</td>
+</tr>
+<tr>
+<td>3:45</td>
+<td>Patterns tab: replay six weeks of cards → "rising pattern: Hostel B · nights · coercion — 7 distinct cards over 3 weeks" → alert with an action</td>
+<td>"The cell acts on the hostel and the hour, not on a person."</td>
+</tr>
+<tr>
+<td>4:30</td>
+<td>Student status page with the passphrase token: the cell's reply is visible, no identity</td>
+<td>The student is not alone after reporting.</td>
+</tr>
+<tr>
+<td>5:00</td>
+<td>Evidence tab: attacker raw vs cards, leakage bits, k, discard latency, C0 vs C1, sarcastic-subset F1, κ — dated</td>
+<td>Everything measured, nothing asserted.</td>
+</tr>
+<tr>
+<td>5:40</td>
+<td>Close</td>
+<td>"Mandated in every college. Runs on one laptop. The committee sees the danger, never the student." Each member names their part.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Fallbacks: recorded replay of every step with a visible badge; the judge's phone step has a pre-typed example if the LAN misbehaves.</p>
+<h2 id="11-scoring-on-the-eight-official-criteria">11. Scoring on the eight official criteria</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Where the points come from</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Innovation</td>
+<td>Never release the text; attacker-in-the-loop audit; provable card channel; privacy preview</td>
+<td>The audit meter; the leakage bound</td>
+</tr>
+<tr>
+<td>Problem Understanding</td>
+<td>Twist solved by <em>not releasing style</em>; plus content self-identification, metadata side channels, pattern-level action, the student's aftermath</td>
+<td>Preview flags; side-channel slide; patterns tab; token page</td>
+</tr>
+<tr>
+<td>Technical Implementation</td>
+<td>Code-mixed multi-head classifier, extractor, stylometry ensemble, k-anonymity, scheduler, pattern detector; ablations</td>
+<td><code>evaluate.py</code> output, dated</td>
+</tr>
+<tr>
+<td>Scalability</td>
+<td>One laptop per college; no cloud; no per-unit cost; schema-driven</td>
+<td>Deployment slide</td>
+</tr>
+<tr>
+<td>Practical Impact</td>
+<td>UGC-mandated committees in every institution; earlier detection of patterns; a channel students will trust</td>
+<td>Replay lead time; the preview</td>
+</tr>
+<tr>
+<td>Presentation</td>
+<td>The "which two?" hook; the meter turning green on the judge's own text</td>
+<td>The script</td>
+</tr>
+<tr>
+<td>User Experience</td>
+<td>Privacy preview; three-tap submission; passphrase token; patterns-first console</td>
+<td>Live on a judge's phone</td>
+</tr>
+<tr>
+<td>Teamwork</td>
+<td>NLP · privacy/attacker · backend/console · data/annotation/pitch</td>
+<td>Hand-offs</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="12-hostile-judge-qa">12. Hostile-judge Q&amp;A</h2>
+<ul>
+<li><strong>"Provably impossible? Nothing is."</strong> Correct — so we don't claim that. Provable for the channels we control: the architecture (no text stored), the card channel (a bounded categorical tuple with no style in it), k-anonymity, closed metadata channels. Measured for the one channel we can't fully remove, against the strongest attacker we could build — here is its accuracy on raw text, and here it is on our outputs.</li>
+<li><strong>"Your attacker is weak, so 'chance' means nothing."</strong> It reaches N% attribution accuracy on raw text over N authors — far above chance — and a pairwise AUC of X. It is a standard PAN-style ensemble. Bring a stronger one; the audit slot is pluggable.</li>
+<li><strong>"The committee needs details to act."</strong> They get a full account — who, what, where, when, how often, how long, how much, what media, what effect — regenerated from the fact graph in our words. Here is one. Here is the count of the student's words in it: zero, enforced at runtime, re-checked in every audit.</li>
+<li><strong>"Your extractor will miss things."</strong> Yes, and the student sees exactly which facts were captured, with the words that produced them, and adds or removes facts from a closed list before sending. The student is the reviewer; the text never leaves the phone to be reviewed by anyone else.</li>
+<li><strong>"Content can identify a student."</strong> Yes — which is why the student sees the card first, with rare combinations flagged and generalised. The reporter controls the content; we make the risk visible before submission.</li>
+<li><strong>"How do you reach the student?"</strong> They reach us: a passphrase token they alone hold; replies are visible on the status page; no identity ever.</li>
+<li><strong>"Small dataset."</strong> The privacy result does not depend on classifier accuracy. The classifier reports honest F1 on 175–200 in-domain texts plus public auxiliary data, with the sarcastic subset broken out.</li>
+<li><strong>"Isn't paraphrasing enough?"</strong> No — paraphrase leaks and is unmeasured. We don't paraphrase the text; we replace it with a card, and only regenerate optional detail under audit.</li>
+<li><strong>"Your numbers come from 36 texts you wrote yourselves."</strong> The privacy proofs don't: 3,000 adversarial inputs with planted canaries and zero leaks, and seven styles of one incident producing one account — those hold for any writer. The attacker-accuracy number does depend on real writers; it comes from the collected corpus with its run date, and anything still from the dev seed is labelled on screen.</li>
+<li><strong>"Is this an LLM wrapper?"</strong> There is no LLM in it. Nothing in the pipeline is heavier than a logistic regression.</li>
+<li><strong>"Why a regex extractor and not a neural model? This is the AI/ML track."</strong> Because the extractor sits <em>inside the privacy boundary</em>. A neural span model is a black box we cannot audit for what it leaks into its outputs; a cue lexicon is a list a judge can read. The extractor's job is narrow — map phrasings to 22 closed acts — and its misses are visible to the student, who repairs them before sending. The ML in Unsigned is where ML belongs: the distress/urgency classifier, and the attacker that proves the release channel is clean. If a fine-tuned encoder (C1) beats the baseline on the real corpus under grouped cross-validation, it ships; if not, it doesn't — that ablation is in <code>evaluate.py</code>.</li>
+<li><strong>"Your extractor is brittle — what about Devanagari, or 'they wouldn't let me leave'?"</strong> Native-script Hindi and Marathi are transliterated before every other step, so one cue set covers both scripts (<code>translit.py</code>); "wouldn't let me leave", "locked us in", "threw water on me", "aggressive", "takleef" are covered, and <code>tests/test_coverage.py</code> holds phrasings the seed was <em>not</em> written around. Every miss you find in the real corpus is a one-line addition, and the student sees exactly what was captured.</li>
+<li><strong>"<code>del text</code> is not secure erasure."</strong> Correct, and we don't claim it. The guarantee is architectural, not about memory: no table, log, response or channel can carry the text, and the account is generated from a lexicon that cannot contain it. <code>del</code> drops the reference; a hardened deployment would add memory locking and zeroing. The bytes lingering in a process page cannot reach the committee, because nothing reads them.</li>
+<li><strong>"Response time leaks text length."</strong> Every submission-path response is padded with random latency (20–140 ms) on top of its own compute, and requests are padded to a fixed size. Absolute timing still varies with load; the text-length signal is gone.</li>
+<li><strong>"<code>demo_author</code> is a privacy hole."</strong> It is honoured only in demo mode. <code>python -m unsigned --no-demo</code> disables it along with Present mode and the attacker endpoints; in that mode the field is silently dropped.</li>
+<li><strong>"The narrative is repetitive and mechanical."</strong> By design: same facts, same words, always — variation is the one thing a generator could use to smuggle style back in. The committee reads a report, not prose.</li>
+<li><strong>"Who deploys it?"</strong> The institution's anti-ragging committee, on a laptop the college already owns. Cost: zero per complaint.</li>
+</ul>
+<h2 id="13-risks-and-elimination">13. Risks and elimination</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Elimination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Corpus not collected in time</td>
+<td>Form goes out today; 30 writers × 5 texts is 20 minutes each; team members recruit 8 each</td>
+</tr>
+<tr>
+<td>Low classifier accuracy on sarcasm</td>
+<td>Public auxiliary data; augmentation; report the sarcastic subset honestly; the privacy story carries</td>
+</tr>
+<tr>
+<td>Weak attacker undermines the claim</td>
+<td>Build the ensemble; show raw-text accuracy first; keep the slot pluggable</td>
+</tr>
+<tr>
+<td>G1 (regeneration) too heavy for the laptop</td>
+<td>It is optional; template-only cards are the more private default</td>
+</tr>
+<tr>
+<td>"Provably" over-claimed</td>
+<td>The scoped four-part claim; never the word "unbreakable"</td>
+</tr>
+<tr>
+<td>Demo LAN/phone failure</td>
+<td>Pre-typed examples; recorded replay with badge</td>
+</tr>
+<tr>
+<td>Ethics concerns</td>
+<td>Fictional corpus, consent, deletion after evaluation, no real complaints processed</td>
+</tr>
+<tr>
+<td>Domain lock</td>
+<td>CX0105 is AI/ML — confirm registration before 16 Sep</td>
+</tr>
+<tr>
+<td>"All your numbers are from 36 texts you wrote" (the adversarial review's strongest point)</td>
+<td>True until the corpus exists. <code>scripts/import_corpus.py</code> turns the form export into <code>corpus.csv</code> in one command; every slide number is regenerated by <code>evaluate.py</code> with its run date; the dev-seed warning banner is shown until then</td>
+</tr>
+<tr>
+<td>Extractor misses on real phrasings</td>
+<td>Devanagari transliteration; wider cue lexicon; <code>tests/test_coverage.py</code>; the student's fact editor as the repair path</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="14-timeline-and-roles-today-is-14-sep">14. Timeline and roles (today is 14 Sep)</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Dates</th>
+<th>Milestone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14 Sep</td>
+<td>Collection form live; scaffold running on the dev seed; A1 attacker demo working; Round 1 document drafted (Sections 0, 1, 4, 5)</td>
+</tr>
+<tr>
+<td>15–16 Sep</td>
+<td>≥ 100 texts in; A1 numbers on real authors; C0 + X0 + card + K1; <strong>Round 1 submitted 16 Sep</strong></td>
+</tr>
+<tr>
+<td>17–19 Sep</td>
+<td>Corpus complete and double-annotated (κ); API + submission page + privacy preview; audit + console; <code>evaluate.py</code> v1 on real data</td>
+</tr>
+<tr>
+<td>20–22 Sep</td>
+<td>C1 fine-tuned (Colab) and ablated; P1 + replay; Evidence tab; deck + 3-minute recorded demo; <strong>Round 2 on 22 Sep</strong></td>
+</tr>
+<tr>
+<td>23–25 Sep</td>
+<td>Side-channel hardening; token/reply channel; G1 only if audit passes; feature freeze 25 Sep</td>
+</tr>
+<tr>
+<td>26 Sep</td>
+<td>Four rehearsals with hostile Q&A; replay files exported with dates</td>
+</tr>
+<tr>
+<td>27 Sep</td>
+<td>Finale</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Roles:</strong> (1) NLP — C0/C1, X0, augmentation, <code>evaluate.py</code> · (2) Privacy — A1 attacker, K1, audit, side-channel rules, the four-part argument · (3) Backend/console — API, scheduler, storage, submission page, preview, console · (4) Data &amp; pitch — recruitment, annotation lead, κ, deck, demo direction. Everyone writes 5 seed texts and recruits 8 writers.</p>
+<h2 id="15-deck-skeleton-12-slides">15. Deck skeleton (12 slides)</h2>
+<ol>
+<li>Unsigned — the committee sees the danger, never the student.</li>
+<li>"Which two are from the same student?" — the hook, with the attacker's answer.</li>
+<li>Why anonymous boxes leak — style, content, metadata.</li>
+<li>The twist, decomposed — R1–R5 and our answers.</li>
+<li>Never release the text — the card channel and its bound.</li>
+<li>Attacker in the loop — the linkability audit and the meter.</li>
+<li>Privacy preview — the student sees the card first.</li>
+<li>Patterns, not people — the detector and an alert.</li>
+<li>Evidence — <code>evaluate.py</code> table, dated.</li>
+<li>Architecture — one laptop, no cloud, no raw-text table.</li>
+<li>Adoption — UGC-mandated committees; zero cost per complaint; the aftermath channel.</li>
+<li>Team.</li>
+</ol>
+<h2 id="16-facts-assumptions-verify">16. Facts, assumptions, VERIFY</h2>
+<p><strong>KNOWN:</strong> PS text, timeline, criteria; UGC anti-ragging regulations mandate institutional committees (VERIFY exact citation); character n-gram models are the standard strong baseline for authorship attribution; the public datasets and encoders listed exist (VERIFY licences and paths).</p>
+<p><strong>ASSUMPTIONS:</strong> fictional complaints written by real students preserve real style; k = 3 is an acceptable anonymity floor for a college of a few thousand students (configurable); the cell can act on patterns plus categorical cards.</p>
+<p><strong>VERIFY (owner: member 4):</strong> dataset licences and download paths; UGC regulation citation; that the chosen encoder handles roman-script Marathi; Colab GPU availability the week of 20 Sep.</p>
+
+    <p class="foot">Companion material: the <code>unsigned/</code> repository (runnable prototype, README), <code>CodeX_2026_Playbook</code> (the 80-PS analysis), <code>all_80_problem_statements_VERIFIED.md</code>, <code>ps_scorecard.csv</code>. Earlier picks (PatchProof, ColdTruth) are superseded by this blueprint.</p>
+  </main>
+</div>

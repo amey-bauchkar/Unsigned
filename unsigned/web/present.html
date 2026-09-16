@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Unsigned — present</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  html, body { height:100%; }
+  body { overflow:hidden; }
+  .stage { position:fixed; inset:0; display:grid; place-items:center; padding:4vh 6vw; }
+  .slide { display:none; width:min(1400px, 100%); animation:in .5s var(--ease); }
+  .slide.on { display:block; }
+  @keyframes in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+  .kick { font:800 .85rem var(--ui); letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin-bottom:1rem; }
+  h1 { font:500 clamp(2.4rem, 5.2vw, 5rem)/1.05 var(--serif); letter-spacing:-.02em; }
+  h1 em { font-style:italic; color:var(--accent-ink); }
+  h2 { font:500 clamp(1.8rem, 3.4vw, 3rem)/1.1 var(--serif); letter-spacing:-.01em; margin-bottom:1.4rem; }
+  .sub { font:400 clamp(1.05rem, 1.6vw, 1.4rem) var(--serif); color:var(--muted); max-width:60ch; margin-top:1rem; }
+  .three { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; position:relative; }
+  .txt { background:var(--surface); border:1px solid var(--rule); border-radius:18px; padding:1.3rem 1.4rem; font:400 clamp(1rem, 1.5vw, 1.35rem)/1.5 var(--serif); min-height:190px; position:relative; transition:border-color .4s, box-shadow .4s; }
+  .txt .n { position:absolute; top:.7rem; right:1rem; font:600 .75rem var(--mono); color:var(--muted); }
+  .txt.win { border-color:var(--bad); box-shadow:0 0 0 3px var(--bad-wash), 0 20px 60px rgba(240,123,113,.15); }
+  .txt .attr { position:absolute; left:1.4rem; bottom:.8rem; font:600 .75rem var(--mono); color:var(--muted); opacity:0; transition:opacity .5s .4s; }
+  .txt.win .attr, .txt.show .attr { opacity:1; }
+  svg.links { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:2; }
+  svg.links path { fill:none; stroke:var(--bad); stroke-width:3.5; stroke-linecap:round; filter:drop-shadow(0 0 6px rgba(240,123,113,.6)); stroke-dasharray:1200; stroke-dashoffset:1200; animation:draw 1s var(--ease) .3s forwards; }
+  svg.links circle { fill:var(--bad); opacity:0; animation:fade .3s .2s forwards; }
+  svg.links text { font:700 14px var(--mono); fill:var(--bad); opacity:0; animation:fade .4s 1.1s forwards; }
+  @keyframes draw { to { stroke-dashoffset:0; } } @keyframes fade { to { opacity:1; } }
+  .verdict { margin-top:1.4rem; font:400 clamp(1.1rem, 1.8vw, 1.5rem) var(--serif); color:var(--ink); }
+  .verdict b { font-family:var(--mono); color:var(--bad); }
+  .verdict.good b { color:var(--ok); }
+  /* shred → card */
+  .shred span { display:inline-block; animation:fall 1.1s var(--ease) forwards; animation-delay:var(--d); }
+  @keyframes fall { 0% { opacity:1; transform:none; filter:blur(0); } 100% { opacity:0; transform:translateY(40px) rotate(var(--r)); filter:blur(3px); } }
+  .cardp { background:var(--surface); border:1px solid var(--rule-strong); border-radius:18px; padding:1.1rem 1.3rem; opacity:0; transform:translateY(10px); transition:all .6s var(--ease); }
+  .cardp.on { opacity:1; transform:none; }
+  .cardp .lab { color:var(--accent-ink); }
+  .cardp .narr { font:400 clamp(.95rem, 1.35vw, 1.2rem)/1.5 var(--serif); margin:.4rem 0 .6rem; }
+  .cardp .ms { font:600 .78rem var(--mono); color:var(--ok); }
+  .pairs { display:grid; gap:.7rem; margin-top:1.2rem; max-width:720px; }
+  .pair { display:grid; grid-template-columns:120px 1fr 70px; gap:1rem; align-items:center; font:600 1rem var(--mono); }
+  .pair .meter { height:14px; }
+  .pair .v { text-align:right; }
+  /* live */
+  .live { display:grid; grid-template-columns:1fr 1.4fr; gap:2rem; align-items:center; }
+  .qr { background:#fff; padding:14px; border-radius:16px; width:max-content; }
+  .url { font:600 clamp(1rem, 1.6vw, 1.4rem) var(--mono); color:var(--accent-ink); margin-top:.8rem; word-break:break-all; }
+  .waiting { font:400 1.2rem var(--serif); color:var(--muted); }
+  .pulse::after { content:""; display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--accent); margin-left:.6rem; animation:pulse 1.2s infinite; vertical-align:middle; }
+  @keyframes pulse { 0%,100% { opacity:.2; transform:scale(.8);} 50% { opacity:1; transform:scale(1.2);} }
+  .audit { margin-top:1rem; background:var(--surface-2); border-radius:14px; padding:1rem 1.2rem; }
+  .audit .row { justify-content:space-between; }
+  .audit .val { font:600 2.2rem var(--mono); }
+  .audit .meter { height:16px; }
+  /* heat */
+  .heat { display:grid; gap:5px; font-size:.85rem; }
+  .heat .hc { display:grid; grid-template-columns:150px repeat(5,1fr); gap:5px; align-items:center; }
+  .heat .rl { color:var(--muted); text-align:right; padding-right:.6rem; text-transform:capitalize; }
+  .heat .cell { height:44px; border-radius:8px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font:600 1rem var(--mono); }
+  .heat .cell.sup { color:var(--muted); font-weight:500; }
+  .heat .ch { color:var(--muted); text-align:center; text-transform:capitalize; }
+  .alertp { border-left:5px solid var(--bad); background:var(--surface); border-radius:14px; padding:1rem 1.3rem; margin-top:1rem; font:400 clamp(1rem,1.5vw,1.3rem) var(--serif); }
+  .alertp small { display:block; font:600 .78rem var(--mono); color:var(--muted); margin-top:.3rem; }
+  /* proof */
+  .bars { display:grid; gap:.9rem; max-width:860px; }
+  .bar { display:grid; grid-template-columns:300px 1fr 90px; gap:1rem; align-items:center; font:500 1.05rem var(--ui); }
+  .bar .track { position:relative; height:22px; background:var(--code); border-radius:11px; }
+  .bar .track i { display:block; height:100%; border-radius:11px; width:0; transition:width 1s var(--ease) .2s; }
+  .bar .track .chance { position:absolute; top:-6px; bottom:-6px; width:3px; background:var(--warn); }
+  .bar .v { font:600 1.3rem var(--mono); text-align:right; }
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1.4rem; }
+  .tiles .big { font-size:2.2rem; }
+  .close h1 { font-size:clamp(2rem, 4.4vw, 4.2rem); }
+  .names { margin-top:2rem; font:500 1.05rem var(--mono); color:var(--muted); }
+  /* chrome */
+  .hud { position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:space-between; align-items:center; padding:.7rem 1.4rem; font:600 .72rem var(--mono); color:var(--muted); }
+  .dots { display:flex; gap:6px; }
+  .dots i { width:22px; height:3px; border-radius:2px; background:var(--rule-strong); }
+  .dots i.on { background:var(--accent); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; }
+  .seed { border:1px solid var(--warn); background:var(--warn-wash); border-radius:8px; padding:.3rem .7rem; font:600 .7rem var(--mono); color:var(--warn); display:inline-block; margin-top:.8rem; }
+</style>
+</head>
+<body class="console">
+<div class="stage">
+
+  <section class="slide on" id="s0">
+    <div class="kick">MUSA CodeX 2026 · CX0105 · Unsigned</div>
+    <h1>The committee sees<br>the danger, <em>never the student.</em></h1>
+    <p class="sub">An anti-ragging early-warning system in which no one — not the committee, not a warden, not us — ever reads what the student wrote.</p>
+  </section>
+
+  <section class="slide" id="s1">
+    <div class="kick">Three anonymous complaints</div>
+    <h2>Two of these were written by the same student. <em>Which two?</em></h2>
+    <div class="three" id="three1"></div>
+    <p class="sub">No names. Just the way they type.</p>
+  </section>
+
+  <section class="slide" id="s2">
+    <div class="kick">The attacker — a standard authorship model on punctuation, spelling, emoji, rhythm</div>
+    <h2>Any warden with a laptop can do this.</h2>
+    <div class="three" id="three2"></div>
+    <p class="verdict" id="v2"></p>
+  </section>
+
+  <section class="slide" id="s3">
+    <div class="kick">The same three complaints, through Unsigned</div>
+    <h2>The words are destroyed. The facts remain — in our words, not theirs.</h2>
+    <div class="three" id="three3"></div>
+    <p class="sub" id="sub3">Every word of every account comes from a closed lexicon. Not one of the student's words, spellings or emoji survives — there is no style left to link.</p>
+  </section>
+
+  <section class="slide" id="s4">
+    <div class="kick">The same attacker, on the accounts</div>
+    <h2 id="h4">Nothing to link.</h2>
+    <div class="pairs" id="pairs4"></div>
+    <p class="verdict good" id="v4"></p>
+  </section>
+
+  <section class="slide" id="s5">
+    <div class="kick">Now you</div>
+    <div class="live">
+      <div>
+        <h2>Type a complaint on your phone.</h2>
+        <div class="qr" id="qr"></div>
+        <div class="url" id="url"></div>
+        <p class="sub">See the card before you send. Then watch it arrive here — and watch what the attacker gets from it.</p>
+      </div>
+      <div id="liveBox"><p class="waiting pulse">Waiting for a card…</p></div>
+    </div>
+  </section>
+
+  <section class="slide" id="s6">
+    <div class="kick">Patterns, not people</div>
+    <h2>The cell acts on the place and the hour.</h2>
+    <div class="grid2">
+      <div class="heat" id="heat6"></div>
+      <div id="alert6"></div>
+    </div>
+  </section>
+
+  <section class="slide" id="s7">
+    <div class="kick">Measured, not asserted</div>
+    <h2>What the strongest attacker we could build gets.</h2>
+    <div class="bars" id="bars7"></div>
+    <div class="tiles" id="tiles7"></div>
+    <div id="seed7"></div>
+  </section>
+
+  <section class="slide close" id="s8">
+    <div class="kick">Unsigned</div>
+    <h1>Mandated in every college.<br>Runs on one laptop.<br><em>Never reads the student.</em></h1>
+    <p class="names" id="names"></p>
+  </section>
+
+</div>
+<div class="hud"><span>← → to move · F fullscreen</span><div class="dots" id="dots"></div><span id="pos"></span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/</g,"&lt;");
+const pct = v => v == null ? "—" : Math.round(v*100) + "%";
+const pretty = v => Array.isArray(v) ? v.map(x => x.replaceAll("_"," ")).join(", ") : String(v ?? "").replaceAll("_"," ");
+let KEY = sessionStorage.getItem("unsigned_key") || prompt("Committee passcode") || "";
+sessionStorage.setItem("unsigned_key", KEY);
+const H = () => ({ "Content-Type":"application/json", "X-Committee-Key": KEY });
+const j = async (u, o={}) => { const r = await fetch(u, { ...o, headers:H() }); const d = await r.json(); if (!r.ok) throw new Error(d.detail || r.status); return d; };
+const N = 9; let cur = 0, story = null, texts = [], liveSince = 0, liveTimer = null, seenIds = new Set();
+
+/* ---------- data ---------- */
+async function boot() {
+  texts = (await j("/api/demo/texts")).texts;
+  story = await j("/api/demo/story", { method:"POST", body: JSON.stringify({ texts }) });
+  const cardsNow = await j("/api/cards"); cardsNow.cards.forEach(c => seenIds.add(c.id));
+  renderThree($("#three1"), texts.map((t,i) => ({ text:t })));
+  renderThree($("#three2"), texts.map((t,i) => ({ text:t, attr: `${story.raw_attribution[i].author} · ${pct(story.raw_attribution[i].prob)}` })));
+  const best = story.raw_pairs[0];
+  $("#v2").innerHTML = `Same author: <b>#${best.a+1} and #${best.b+1} — ${pct(best.p)}</b>. ${story.raw_pairs[1] ? `Next closest pair: ${pct(story.raw_pairs[1].p)}.` : ""} Deleting the name is not anonymity.`;
+  renderThree($("#three3"), texts.map((t,i) => ({ text:t, card: story.cards[i], ms: story.discard_ms[i] })), true);
+  const bestRaw = story.raw_pairs[0], bestCard = story.card_pairs[0];
+  $("#h4").textContent = story.same_top_pair ? "Its best guess is the same pair — but at chance." : "Its best guess is now a different pair.";
+  $("#pairs4").innerHTML = `<div class="pair" style="color:var(--muted)"><span>raw text</span><span>best pair #${bestRaw.a+1} ↔ #${bestRaw.b+1} at <b style="color:var(--bad)">${pct(bestRaw.p)}</b>, next ${pct(story.raw_pairs[1] ? story.raw_pairs[1].p : 0)} — one pair stands out</span><span></span></div>`
+    + story.card_pairs.map(p => `<div class="pair"><span>#${p.a+1} ↔ #${p.b+1}</span><div class="meter"><i data-w="${p.p*100}" style="background:${p===bestCard && !story.same_top_pair ? "var(--warn)" : "var(--rule-strong)"}"></i></div><span class="v">${pct(p.p)}</span></div>`).join("")
+    + `<div class="pair" style="color:var(--muted)"><span>accounts</span><span>${story.same_top_pair ? "same pair on top, but the scores no longer separate it from the others" : `best pair is now #${bestCard.a+1} ↔ #${bestCard.b+1} — it links by <b>what happened</b>, not by who wrote it`}</span><span></span></div>`;
+  $("#v4").innerHTML = `Attribution on accounts: ${story.card_attribution.map((a,i) => `#${i+1}→${a.author}`).join(", ")} — at or below chance <b>(${pct(story.chance)})</b>. ${story.narrative_words.reduce((a,b)=>a+b,0)} words released, <b>0</b> of them the students'. The account channel carries facts, not fingerprints.`;
+  const url = location.origin + "/?demo=1"; $("#url").textContent = url;
+  try { new QRCode($("#qr"), { text:url, width:180, height:180, correctLevel: QRCode.CorrectLevel.M }); } catch (e) { $("#qr").textContent = url; }
+  const o = await j("/api/overview"), p = await j("/api/patterns");
+  const color = n => n === 0 ? "var(--surface-2)" : n <= 2 ? "#2b4a55" : n <= 5 ? "#3d8a94" : "#f2b441";
+  $("#heat6").innerHTML = `<div class="hc"><span></span>${o.cols.map(c => `<span class="ch">${c}</span>`).join("")}</div>` + o.rows.map(r => `<div class="hc"><span class="rl">${pretty(r)}</span>${o.cols.map(c => { const cell = o.grid.find(x => x.row===r && x.col===c); return `<div class="cell ${cell.suppressed?"sup":""}" style="background:${color(cell.n)}">${cell.suppressed ? "·" : (cell.n || "")}</div>`; }).join("")}</div>`).join("");
+  $("#alert6").innerHTML = p.alerts.length ? p.alerts.slice(0,2).map(a => `<div class="alertp">${esc(a.message)}<small>p = ${a.p_value.toExponential(1)} · usual ${a.baseline_per_week}/week · ${a.cards_this_week} distinct cards</small><small>→ ${esc(a.suggested_action)}</small></div>`).join("") + `<p class="sub">Cells with fewer than ${o.k} reports are hidden. The squad gets a place, an hour and a behaviour — never a name.</p>` : `<p class="sub">No rising pattern this week.</p>`;
+  const a = await j("/api/audit"); const ev = a.evaluation || {}; const c0 = ev.c0 || {};
+  $("#bars7").innerHTML = [["Raw text — what every anonymous box leaks", ev.attacker_acc_raw, "var(--bad)"],["After normalising spelling & punctuation", ev.attacker_acc_norm, "var(--warn)"],["Released accounts (facts in our words)", ev.attacker_acc_cards, "var(--ok)"]]
+    .map(b => `<div class="bar"><span>${b[0]}</span><div class="track"><i data-w="${(b[1]||0)*100}" style="background:${b[2]}"></i><span class="chance" style="left:${(ev.chance||0)*100}%"></span></div><span class="v">${pct(b[1])}</span></div>`).join("");
+  const fz = ev.fuzz, si = ev.style_invariance;
+  $("#tiles7").innerHTML = [["Adversarial inputs with planted canaries", fz ? `${fz.inputs.toLocaleString()} · ${fz.total_leaks} leaks` : "–", fz ? "no canary, no student word, no foreign token ever reached an account or a stored card" : "run scripts/fuzz_release_channel.py"],
+    ["Same incident, seven styles", si ? `${si.account_identical} / ${si.incidents}` : "–", si ? "one identical account each — the attacker sees six different authors in the raw texts" : "run scripts/style_invariance.py"],
+    ["Attacker accuracy, raw → accounts", `${pct(ev.attacker_acc_raw)} → ${pct(ev.attacker_acc_cards)}`, `chance ${pct(ev.chance)} · ${ev.n_authors} authors · these need the real corpus`],
+    ["False alerts on mundane complaints", c0.system ? `${pct(c0.false_alert_rate)} → ${pct(c0.system.false_alert_rate)}` : pct(c0.false_alert_rate), "classifier alone → classifier + facts + rules"]]
+    .map(t => `<div class="tile"><span class="lab">${t[0]}</span><span class="big">${t[1]}</span><span class="muted">${t[2]}</span></div>`).join("");
+  $("#seed7").innerHTML = ev.dev_seed ? `<span class="seed">DEV SEED — smoke-test numbers; the real corpus replaces these before the finale</span>` : `<span class="muted">evaluate.py · ${ev.run_date} · ${ev.corpus}</span>`;
+  $("#names").textContent = "Built by the Unsigned team · MUSA CodeX 2026";
+}
+function renderThree(el, items, withCards=false) {
+  el.innerHTML = items.map((it,i) => `<div class="txt" data-i="${i}"><span class="n">#${i+1}</span><div class="body">${esc(it.text)}</div>${it.attr?`<span class="attr">${it.attr}</span>`:""}</div>`).join("");
+  if (withCards) el.querySelectorAll(".txt").forEach((t,i) => t.insertAdjacentHTML("afterend", `<div class="cardp" data-i="${i}"><span class="lab">Account #${i+1}</span><p class="narr">${esc(items[i].card.narrative)}</p><span class="ms">✓ raw text discarded after ${items[i].ms} ms · ${items[i].card.narrative.split(" ").length} words, 0 of them the student's</span></div>`));
+  if (withCards) el.style.gridTemplateRows = "auto auto";
+}
+
+/* ---------- slide effects ---------- */
+function enter(i) {
+  if (i === 2 && story) {
+    const best = story.raw_pairs[0]; const cards = $("#three2").querySelectorAll(".txt");
+    cards.forEach(c => c.classList.add("show"));
+    setTimeout(() => { cards[best.a].classList.add("win"); cards[best.b].classList.add("win"); drawLink($("#three2"), cards[best.a], cards[best.b], pct(best.p)); }, 600);
+  }
+  if (i === 3) {
+    const box = $("#three3"); box.querySelectorAll(".txt .body").forEach(b => { const words = b.textContent.split(/(\s+)/); b.innerHTML = `<span class="shred">${words.map(w => /^\s+$/.test(w) ? w : `<span style="--d:${(Math.random()*0.7).toFixed(2)}s;--r:${(Math.random()*30-15).toFixed(0)}deg">${esc(w)}</span>`).join("")}</span>`; });
+    setTimeout(() => box.querySelectorAll(".cardp").forEach(c => c.classList.add("on")), 900);
+  }
+  if (i === 4) setTimeout(() => $("#pairs4").querySelectorAll("i").forEach(el => el.style.width = Math.max(2, el.dataset.w) + "%"), 60);
+  if (i === 5) { liveSince = Date.now(); clearInterval(liveTimer); liveTimer = setInterval(pollLive, 2500); }
+  else { clearInterval(liveTimer); }
+  if (i === 7) setTimeout(() => $("#bars7").querySelectorAll("i").forEach(el => el.style.width = Math.max(1, el.dataset.w) + "%"), 60);
+}
+function drawLink(container, a, b, label) {
+  container.querySelector("svg.links")?.remove();
+  const r = container.getBoundingClientRect(), ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  const left = ra.left < rb.left ? ra : rb, right = ra.left < rb.left ? rb : ra;
+  const x1 = left.right - r.left - 8, x2 = right.left - r.left + 8, y = left.top - r.top + left.height * 0.42;
+  const mid = (x1 + x2) / 2, up = Math.max(14, y - 46);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "links");
+  svg.innerHTML = `<path d="M ${x1} ${y} Q ${mid} ${up} ${x2} ${y}"/><circle cx="${x1}" cy="${y}" r="5"/><circle cx="${x2}" cy="${y}" r="5"/><text x="${mid}" y="${up - 8}" text-anchor="middle">same author · ${label}</text>`;
+  container.appendChild(svg);
+}
+async function pollLive() {
+  try {
+    const c = await j("/api/cards");
+    const fresh = c.cards.filter(x => !seenIds.has(x.id) && !x.parent_id).sort((a,b) => b.id - a.id)[0];
+    if (!fresh) return;
+    seenIds.add(fresh.id);
+    const a = fresh.audit || {}; const demo = a.raw_p_true != null;
+    const raw = demo ? a.raw_p_true : a.raw_top_prob, rel = demo ? a.released_p_true : ((a.foreign_tokens||0) / Math.max(1, a.narrative_tokens||1));
+    $("#liveBox").innerHTML = `<div class="cardp on"><span class="lab">Just arrived · case #${fresh.id}</span><p class="narr">${esc(fresh.narrative)}</p><span class="ms">✓ raw text discarded after ${fresh.raw_discarded_after_ms} ms</span>
+      <div class="audit"><div class="row"><span class="lab" id="lvLab">What the attacker had, with the raw text</span><span class="val" id="lvVal">${pct(raw)}</span></div><div class="meter"><i id="lvMeter" style="width:${Math.max(2, raw*100)}%;background:var(--bad)"></i></div><p class="muted" id="lvExp" style="margin:.5rem 0 0">${demo ? "probability on the reference author" : "attribution confidence"} · chance ${pct(a.chance)}</p></div></div>`;
+    setTimeout(() => { $("#lvLab").textContent = "What the attacker gets from the released card"; $("#lvVal").textContent = pct(rel); $("#lvMeter").style.width = Math.max(2, rel*100) + "%"; $("#lvMeter").style.background = "var(--ok)"; $("#lvExp").textContent = (demo ? `probability on the reference author · chance ${pct(a.chance)}` : `${a.narrative_tokens||0} words in the account, ${a.foreign_tokens||0} of them the student's`) + " — the text no longer exists"; }, 2600);
+  } catch (e) {}
+}
+
+/* ---------- navigation ---------- */
+function go(i) {
+  cur = Math.max(0, Math.min(N-1, i));
+  document.querySelectorAll(".slide").forEach((s,k) => s.classList.toggle("on", k === cur));
+  $("#dots").innerHTML = Array.from({length:N}, (_,k) => `<i class="${k<=cur?"on":""}"></i>`).join("");
+  $("#pos").textContent = `${cur+1} / ${N}`;
+  enter(cur);
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); go(cur+1); }
+  if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(cur-1); }
+  if (e.key.toLowerCase() === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+document.addEventListener("click", e => { if (!e.target.closest("a,button,input")) go(cur+1); });
+boot().then(() => go(0)).catch(e => { document.body.innerHTML = `<main class="narrow"><h2>Present mode could not start</h2><p class="muted">${esc(e.message)}. Train the models (python scripts/evaluate.py --train) and sign in to the console first.</p></main>`; });
+</script>
+</body>
+</html>

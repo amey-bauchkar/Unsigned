@@ -1,0 +1,45 @@
+author,text,distress,urgency,types,sarcasm,mundane
+A01,"seniors ne kal raat hostel b me 2 ghante khade rakha... intro dene ko bola bar bar... yaar thak gaya hu",high,soon,coercion_forced_acts,0,0
+A01,"aaj phir wahi log canteen me aake bola treat de warna dekh lenge... paise nahi hai mere paas yaar...",high,soon,extortion_financial;verbal_abuse,0,0
+A01,"kuch nahi bas thoda gaali waali bhasha use karte hai corridor me... roz ka hai ab... ignore karta hu",low,routine,verbal_abuse,0,0
+A01,"raat ko room me aake sone nahi dete... kehte hai final year ka rule hai... subah class me neend aati hai yaar",high,immediate,coercion_forced_acts,0,0
+A01,"mess ka khana kal se thanda aa raha hai... koi dekh lo yaar...",none,routine,none,0,1
+A01,"wifi hostel a me kaam nahi karta... assignment upload nahi ho raha... pls fix",none,routine,none,0,1
+A02,"BHAI kal raat seniors ne hostel B second floor pe bulaya aur 3 ghante KHADE rakha!!! 😭😭 intro intro intro!!!",high,soon,coercion_forced_acts,0,0
+A02,"Aaj ground pe ek senior ne dhakka diya aur sabke saamne gaali di!!! 😡 kisi ne kuch nahi bola bhai!!!",high,immediate,physical;verbal_abuse,0,0
+A02,"Wah bhai kya welcome hai!!! 😂😂 roz raat ko dance karwate hai corridor me, mazaa aa gaya 🙏",high,soon,coercion_forced_acts,1,0
+A02,"Bhai recharge karwa do bolke 500 rupees le gaye seniors!!! kal phir maangenge 😭",high,soon,extortion_financial,0,0
+A02,"BHAI canteen me samosa khatam ho jata hai 11 baje!!! 😭 kuch karo!!!",none,routine,none,0,1
+A02,"Library ka AC band hai 3 din se!!! padhai kaise kare bhai 😭😭",none,routine,none,0,1
+A03,"Sir, I would like to report that some final year students in Hostel A have been forcing first year students to stand in the corridor late at night. Kindly look into this matter.",high,soon,coercion_forced_acts,0,0
+A03,"Madam, a group of seniors recorded a video of a classmate being made to do an embarrassing act in the mess and shared it on a WhatsApp group. He is very disturbed.",high,immediate,cyber;coercion_forced_acts,0,0
+A03,"Sir, this is a minor issue but some seniors regularly pass insulting remarks in the lab. It is not physical, but it is uncomfortable.",low,routine,verbal_abuse,0,0
+A03,"Madam, a senior touched a first year student inappropriately near the gate yesterday evening and warned her not to tell anyone. Kindly treat this as urgent.",high,immediate,sexual_harassment;verbal_abuse,0,0
+A03,"Sir, the attendance portal is showing incorrect entries for the second week of August. Kindly rectify.",none,routine,none,0,1
+A03,"Madam, the water cooler on the third floor of the academic block is not working. Kindly arrange for repair.",none,routine,none,0,1
+A04,"kal ratri hostel b madhe seniors ni mala 2 taas ubha kela na, intro dya mhanun... khup bhiti vatli",high,soon,coercion_forced_acts,0,0
+A04,"canteen madhe te lok roz paise magtat na, treat dya mhantat, nahi dile tar dhamki detat... kay karu",high,soon,extortion_financial;verbal_abuse,0,0
+A04,"thoda gaali galoch ahe corridor madhe, roz nahi pan kadhi kadhi... evdha serious nahi ahe",low,routine,verbal_abuse,0,0
+A04,"class madhe koni bolat nahi majhya shi na, seniors ni sangitla ahe ki hya la alag theva... khup ekta vatta",high,soon,exclusion_social,0,0
+A04,"mess cha jevan khup kharab ahe na aaj kal, bhaji thanda asto",none,routine,none,0,1
+A04,"bus stop var light nahi ahe, ratri khup andhar asto, please light lava",none,routine,none,0,1
+A05,"srs ne kal rat hostel b me 2 hrs khada rkha intro k liye... pls kuch kro... bht dar lgta h",high,soon,coercion_forced_acts,0,0
+A05,"u wont believe, canteen me 300 rs le gye treat k naam pe, nhi diya to bola dekh lenge... 2nd time h ye",high,soon,extortion_financial;verbal_abuse,0,0
+A05,"bs thodi gali dete h lab me, koi bdi baat nhi... but roz h to bta rha hu",low,routine,verbal_abuse,0,0
+A05,"kal ground pe ek sr ne thappad mara sbke samne... m kuch nhi bol paya... pls help",high,immediate,physical,0,0
+A05,"wifi nhi chl rha hostel a me 3 din se pls fix",none,routine,none,0,1
+A05,"mess me kal khane me kida tha pls dekho",none,routine,none,0,1
+A06,"wow such a warm welcome from seniors?? 3 hours standing in hostel B corridor at night, great tradition hmm",high,soon,coercion_forced_acts,1,0
+A06,"love how the seniors 'borrow' 500 rupees every week from us in the canteen?? never returned, obviously. amazing",high,soon,extortion_financial,1,0
+A06,"nothing serious?? just the usual comments about how we dress, in the lab, every single day. hmm. fine I guess",low,routine,verbal_abuse,1,0
+A06,"great night?? a senior pushed my roommate down the stairs 'as a joke', he cant walk properly today. hilarious",high,immediate,physical,1,0
+A06,"the mess food?? cold again. what a surprise hmm",none,routine,none,1,1
+A06,"library closes at 8?? during exams?? brilliant planning honestly",none,routine,none,1,1
+A01,"lab ka printer 3 din se kharab hai... assignment print nahi ho raha yaar...",none,routine,none,0,1
+A02,"BHAI gym ka AC band hai!!! 😭 workout kaise kare!!!",none,routine,none,0,1
+A03,"Sir, the notice board near the library has an outdated exam timetable. Kindly update it.",none,routine,none,0,1
+A04,"canteen madhe chai khup mahag zali ahe na, 20 rupaye ek cup",none,routine,none,0,1
+A05,"bus late aati h roz 20 min, pls timing fix kro",none,routine,none,0,1
+A06,"the projector in room 204?? flickering all lecture. very professional hmm",none,routine,none,1,1
+A01,"hostel me paani nahi aa raha subah se... koi dekh lo",none,routine,none,0,1
+A05,"id card reissue me 2 hafte lagte h, itna time kyu",none,routine,none,0,1

@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Unsigned — committee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  body { overflow-x:hidden; }
+  .shell { display:grid; grid-template-columns:232px 1fr; min-height:100vh; }
+  aside { background:var(--surface); border-right:1px solid var(--rule); padding:1.1rem .9rem; display:flex; flex-direction:column; gap:.2rem; position:sticky; top:0; height:100vh; }
+  .brand { font:800 .78rem var(--ui); letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); padding:.3rem .6rem 1rem; }
+  .brand small { display:block; font:500 .72rem var(--ui); letter-spacing:0; text-transform:none; color:var(--muted); margin-top:.15rem; }
+  aside nav button { display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; background:none; border:0; border-radius:10px; padding:.6rem .7rem; color:var(--muted); font-weight:700; }
+  aside nav button.on { background:var(--surface-2); color:var(--ink); }
+  aside nav button .ico { width:20px; text-align:center; font-family:var(--mono); color:var(--accent); }
+  aside nav button .cnt { margin-left:auto; font:600 .7rem var(--mono); color:var(--bad); }
+  aside .foot { margin-top:auto; display:grid; gap:.4rem; }
+  aside .foot button { width:100%; }
+  .content { padding:1.4rem 1.8rem 4rem; min-width:0; }
+  .pagehead { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
+  .pagehead h1 { font-size:1.45rem; font-weight:800; letter-spacing:-.01em; }
+  .pagehead p { color:var(--muted); margin:.2rem 0 0; max-width:70ch; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:.9rem; margin-bottom:1.1rem; }
+  .kpis .tile .delta { font-size:.8rem; color:var(--muted); }
+  .kpis .tile.hot { border-color:var(--bad); }
+  .two { display:grid; grid-template-columns:3fr 2fr; gap:1rem; margin-bottom:1rem; }
+  .blockhead { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-bottom:.6rem; }
+  .blockhead h2 { font-size:.95rem; font-weight:800; }
+  .blockhead span { font-size:.8rem; color:var(--muted); }
+  /* heat grid */
+  .heat { display:grid; gap:4px; font-size:.75rem; }
+  .heat .hc { display:grid; grid-template-columns:110px repeat(5,1fr); gap:4px; align-items:center; }
+  .heat .rl { color:var(--muted); text-align:right; padding-right:.4rem; text-transform:capitalize; }
+  .heat .cell { height:34px; border-radius:6px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font:600 .78rem var(--mono); color:var(--ink); cursor:pointer; border:1px solid transparent; transition:transform .12s; }
+  .heat .cell:hover { transform:scale(1.04); border-color:var(--accent); }
+  .heat .cell.sup { color:var(--muted); font-weight:500; }
+  .heat .ch { color:var(--muted); text-align:center; text-transform:capitalize; }
+  .legend { display:flex; gap:.8rem; align-items:center; font-size:.75rem; color:var(--muted); margin-top:.6rem; flex-wrap:wrap; }
+  .legend i { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:middle; margin-right:.3rem; }
+  /* alerts */
+  .alert { border-left:4px solid var(--bad); }
+  .alert h3 { font-size:1rem; font-weight:800; }
+  .alert .meta { font:500 .75rem var(--mono); color:var(--muted); margin:.3rem 0 .5rem; }
+  .alert p { margin:.3rem 0; }
+  /* sparkline */
+  .spark { display:flex; align-items:flex-end; gap:6px; height:90px; padding:.4rem 0 0; }
+  .spark div { flex:1; background:var(--accent-wash); border-radius:4px 4px 0 0; position:relative; min-height:3px; }
+  .spark div.now { background:var(--accent); }
+  .spark div span { position:absolute; bottom:-1.3rem; left:0; right:0; text-align:center; font:500 .65rem var(--mono); color:var(--muted); }
+  /* needs-you list */
+  .need { display:grid; gap:.5rem; }
+  .need button { display:grid; grid-template-columns:auto 1fr auto; gap:.7rem; align-items:center; text-align:left; background:var(--surface-2); border:1px solid transparent; border-radius:10px; padding:.55rem .7rem; color:var(--ink); font-weight:500; }
+  .need button:hover { border-color:var(--accent); }
+  .need .t { font-size:.9rem; }
+  .need .d { font:500 .7rem var(--mono); color:var(--muted); }
+  /* cases */
+  .chips { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.8rem; align-items:center; }
+  .chips button { border-radius:999px; padding:.3rem .8rem; font-size:.82rem; }
+  .chips button.on { background:var(--accent-wash); }
+  .chips input { width:auto; max-width:220px; padding:.35rem .7rem; border-radius:999px; font-size:.85rem; }
+  table.cases tr { cursor:pointer; }
+  table.cases tr:hover td { background:var(--surface-2); }
+  table.cases tr.sel td { background:var(--accent-wash); }
+  table.cases td.what { max-width:320px; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(560px, 100vw); background:var(--surface); border-left:1px solid var(--rule); box-shadow:-20px 0 60px rgba(0,0,0,.35); transform:translateX(100%); transition:transform .3s var(--ease); z-index:20; overflow-y:auto; padding:1.2rem 1.4rem 3rem; }
+  .drawer.open { transform:none; }
+  .drawer .close { position:absolute; top:.9rem; right:.9rem; }
+  .drawer h2 { font-size:1.1rem; font-weight:800; margin:.2rem 0 .2rem; padding-right:3rem; }
+  .drawer .narr { font-size:1.02rem; line-height:1.55; margin:.6rem 0 .2rem; }
+  .why { font-size:.85rem; color:var(--muted); margin:.5rem 0; }
+  .why b { color:var(--ink); font-family:var(--mono); font-weight:600; background:var(--code); padding:.05em .35em; border-radius:4px; }
+  .audit { background:var(--surface-2); border-radius:12px; padding:.8rem .9rem; margin:.9rem 0; }
+  .audit .row { justify-content:space-between; }
+  .audit .val { font:600 1.4rem var(--mono); }
+  .fchips { display:grid; gap:.35rem; margin:.4rem 0 .2rem; }
+  .fgrp { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; }
+  .fgrp .k { font:700 .62rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); min-width:120px; }
+  .chip { display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--rule-strong); background:var(--surface-2); border-radius:999px; padding:.2rem .6rem; font-size:.82rem; }
+  .chip.gen { border-color:var(--warn); background:var(--warn-wash); }
+  .chip em { font:600 .68rem var(--mono); color:var(--warn); font-style:normal; }
+  .thread { border-left:2px solid var(--rule-strong); padding-left:.9rem; margin:.8rem 0; display:grid; gap:.6rem; }
+  .thread .item { font-size:.9rem; }
+  .thread .who { font:700 .65rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:block; }
+  .drawer textarea { min-height:80px; }
+  /* privacy proof */
+  .stepper { display:grid; grid-template-columns:repeat(7,1fr); gap:.5rem; margin:.4rem 0 1rem; }
+  .stepper div { background:var(--surface-2); border-radius:10px; padding:.7rem .75rem; font-size:.82rem; position:relative; }
+  .stepper div b { display:block; font-size:.85rem; margin-bottom:.15rem; }
+  .stepper div em { font:600 .72rem var(--mono); color:var(--accent-ink); font-style:normal; display:block; margin-top:.3rem; }
+  .stepper div.last { background:var(--ok-wash); border:1px solid var(--ok); }
+  .bars { display:grid; gap:.6rem; margin:.6rem 0; }
+  .bar { display:grid; grid-template-columns:230px 1fr 60px; gap:.8rem; align-items:center; font-size:.88rem; }
+  .bar .track { position:relative; height:16px; background:var(--code); border-radius:8px; overflow:visible; }
+  .bar .track i { display:block; height:100%; border-radius:8px; width:0; transition:width .9s var(--ease); }
+  .bar .track .chance { position:absolute; top:-5px; bottom:-5px; width:2px; background:var(--warn); }
+  .bar .v { font:600 .95rem var(--mono); text-align:right; }
+  .ablate { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; }
+  .try textarea { min-height:60px; }
+  .warnbox { border:1px solid var(--warn); background:var(--warn-wash); border-radius:10px; padding:.6rem .9rem; font-size:.9rem; margin-bottom:1rem; }
+  .login { max-width:420px; margin:14vh auto; }
+  .toast { position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--ground); padding:.6rem 1rem; border-radius:10px; font-weight:700; opacity:0; transition:all .25s var(--ease); z-index:30; }
+  .toast.show { opacity:1; transform:translateX(-50%); }
+  @media (max-width:960px) { .shell { grid-template-columns:1fr; } aside { position:static; height:auto; flex-direction:row; flex-wrap:wrap; } aside .foot { margin:0 0 0 auto; } .kpis { grid-template-columns:repeat(2,1fr); } .two { grid-template-columns:1fr; } .stepper { grid-template-columns:repeat(2,1fr); } .ablate { grid-template-columns:1fr; } .bar { grid-template-columns:1fr; } }
+</style>
+</head>
+<body class="console">
+<div id="login" class="login card hidden">
+  <span class="lab">Committee console</span>
+  <h2 style="margin:.3rem 0 .5rem;font-size:1.3rem">Passcode</h2>
+  <p class="muted">For members of the anti-ragging cell. Nothing on this console contains a student's words.</p>
+  <label for="pass" class="lab">Passcode</label>
+  <input id="pass" type="password" placeholder="passcode" autocomplete="current-password" aria-describedby="loginErr">
+  <div class="row" style="margin-top:.8rem"><button id="loginBtn" class="primary">Enter</button><span class="muted" id="loginErr" role="alert"></span></div>
+</div>
+
+<div id="shell" class="shell hidden">
+  <aside>
+    <div class="brand">Unsigned<small>Anti-ragging cell · console</small></div>
+    <nav aria-label="Console sections">
+      <button data-tab="overview" class="on"><span class="ico">◐</span>Overview</button>
+      <button data-tab="cases"><span class="ico">▤</span>Cases<span class="cnt" id="needCnt"></span></button>
+      <button data-tab="proof"><span class="ico">▣</span>Privacy proof</button>
+      <button data-tab="demo"><span class="ico">▶</span>Demo</button>
+    </nav>
+    <div class="foot">
+      <button class="primary" id="presentBtn">Present mode ↗</button>
+      <button class="ghost small" id="reportBtn">Weekly report</button>
+      <button class="ghost small" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <div class="pagehead"><div><h1>This week</h1><p>Where and when things are happening — never who. Cells with fewer than <b id="kNote">3</b> reports are hidden so that no single student can be singled out.</p></div><span class="muted" id="weekLab"></span></div>
+      <div class="kpis">
+        <div class="tile" id="kOpen"><span class="lab">Open cases</span><span class="big">–</span><span class="delta"></span></div>
+        <div class="tile"><span class="lab">Cards this week</span><span class="big" id="kWeek">–</span><span class="delta" id="kWeekD"></span></div>
+        <div class="tile"><span class="lab">Awaiting release</span><span class="big" id="kPend">–</span><span class="delta">released after a random delay so arrival order can't be matched to a person</span></div>
+        <div class="tile" id="kAlerts"><span class="lab">Rising patterns</span><span class="big">–</span><span class="delta">place × time × behaviour, above its own history</span></div>
+      </div>
+      <div class="two">
+        <div class="card">
+          <div class="blockhead"><h2>Where × when</h2><span>this week · click a cell to open those cases</span></div>
+          <div class="heat" id="heat"></div>
+          <div class="legend"><span><i style="background:var(--surface-2)"></i>none</span><span><i style="background:#2b4a55"></i>few</span><span><i style="background:#3d8a94"></i>several</span><span><i style="background:#f2b441"></i>many</span><span>· = hidden, fewer than k</span></div>
+        </div>
+        <div>
+          <div class="blockhead"><h2>Rising patterns</h2><span>what needs the squad</span></div>
+          <div id="alerts"></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="card">
+          <div class="blockhead"><h2>Cards per week</h2><span>last 8 weeks</span></div>
+          <div class="spark" id="spark"></div>
+        </div>
+        <div class="card">
+          <div class="blockhead"><h2>Needs you now</h2><span>immediate & soon, not yet opened</span></div>
+          <div class="need" id="need"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CASES -->
+    <section id="cases" class="hidden">
+      <div class="pagehead"><div><h1>Cases</h1><p>Every card the sanitiser released. Click a row for the full card, why it was classified that way, the linkability audit, and the thread with the student.</p></div></div>
+      <div class="chips">
+        <button data-f="needs" class="on">Needs action</button><button data-f="in_progress">In progress</button><button data-f="resolved">Resolved</button><button data-f="all">All</button>
+        <input id="q" type="search" placeholder="filter: hostel, night, physical…">
+        <span class="muted" id="casesLab"></span>
+      </div>
+      <div class="card" style="padding:0;overflow:auto"><table class="cases" aria-label="Released cases"><thead><tr><th>Urgency</th><th>Distress</th><th>What</th><th>Where · when</th><th>Day</th><th>Status</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+    </section>
+
+    <!-- PRIVACY PROOF -->
+    <section id="proof" class="hidden">
+      <div class="pagehead"><div><h1>Privacy proof</h1><p>What we can prove by construction, and what we measured against the strongest attacker we could build. Every number here comes from <code>evaluate.py</code> with its run date.</p></div></div>
+      <div id="seedWarn" class="warnbox hidden">These numbers come from the team-written dev seed — a smoke test. They are replaced by the real 30–40-author corpus before any slide.</div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="blockhead"><h2>What leaves the sanitiser</h2><span>the only channel is the card</span></div>
+        <div class="stepper" id="stepper"></div>
+        <p class="muted">A card is a bounded tuple of categories plus a sentence generated from a template. No word of the student's is copied into it, so no writing style can be in it. The channel's total capacity is <b id="capBits">–</b> bits per card — about anything, including the author.</p>
+      </div>
+      <div class="two">
+        <div class="card">
+          <div class="blockhead"><h2>The attacker</h2><span>authorship attribution · leave-one-out</span></div>
+          <div class="bars" id="bars"></div>
+          <p class="muted">The orange line is chance. Deleting the name does nothing; normalising spelling barely helps; a card gives the attacker nothing.</p>
+        </div>
+        <div class="card try">
+          <div class="blockhead"><h2>Try it</h2><span>same student?</span></div>
+          <textarea id="tA" placeholder="complaint A"></textarea>
+          <textarea id="tB" placeholder="complaint B" style="margin-top:.5rem"></textarea>
+          <div class="row" style="margin-top:.5rem"><button id="tryBtn" class="small">Compare</button><span id="tryOut" class="muted"></span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="blockhead"><h2>Proofs that do not depend on who wrote the text</h2><span>the non-circular evidence</span></div>
+        <div class="ablate">
+          <div class="tile"><span class="lab">Adversarial fuzz — release channel</span><span class="big" id="fzInputs">–</span><span class="muted" id="fzSub">inputs with planted canary words</span></div>
+          <div class="tile"><span class="lab">Style invariance</span><span class="big" id="siVal">–</span><span class="muted" id="siSub">incidents written in seven styles each</span></div>
+          <div class="tile"><span class="lab">Hallway test (one-tap, anonymous)</span><span class="big" id="fbVal">–</span><span class="muted" id="fbSub">understood the card · felt safe</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="blockhead"><h2>The account channel</h2><span>facts in, fingerprints out</span></div>
+        <div class="ablate">
+          <div class="tile"><span class="lab">Words released · outside the lexicon</span><span class="big" id="lexWords">–</span><span class="muted">every word of every account comes from a <b id="lexSize">–</b>-word lexicon; the student's words are never copied</span></div>
+          <div class="tile"><span class="lab">Attacker on released accounts</span><span class="big" id="accNarr">–</span><span class="muted">attribution accuracy · chance <span id="chanceNarr">–</span></span></div>
+          <div class="tile"><span class="lab">Account channel capacity</span><span class="big" id="narrBits">–</span><span class="muted">the fact space — what the committee needs, none of it style</span></div>
+        </div>
+      </div>
+      <div class="ablate">
+        <div class="tile"><span class="lab">k-anonymity</span><span class="big" id="kVal">–</span><span class="muted">a card is shown only at a granularity shared by ≥ k cards; <span id="genVal"></span></span></div>
+        <div class="tile"><span class="lab">Raw text discarded after</span><span class="big" id="latVal">–</span><span class="muted" id="latSub"></span></div>
+        <div class="tile"><span class="lab">Classifier (grouped by author)</span><span class="big" id="f1Val">–</span><span class="muted" id="f1Sub"></span></div>
+      </div>
+      <p class="muted" id="evDate" style="margin-top:.8rem"></p>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo" class="hidden">
+      <div class="pagehead"><div><h1>Demo setup</h1><p>Present mode runs the whole story live on the real models: three complaints → the attacker links two → the same three through Unsigned → the attacker fails → your live card → patterns → proof.</p></div></div>
+      <div class="two">
+        <div class="card">
+          <div class="blockhead"><h2>Demo complaints</h2><span>two should be by the same person</span></div>
+          <div id="demoTexts"></div>
+          <div class="row" style="margin-top:.6rem"><button id="demoAdd" class="ghost small">+ add</button><button id="demoSave" class="small primary">Save for Present</button><button id="demoReset" class="ghost small">reset to defaults</button><span class="muted" id="demoMsg"></span></div>
+        </div>
+        <div class="card">
+          <div class="blockhead"><h2>What the attacker knows</h2><span>the adversary's reference samples</span></div>
+          <p class="muted">A warden holding a student's earlier essay is the realistic threat. Add such a sample here so the audit can show the attacker's probability on <em>that</em> author for a live submission (students then use <code>/?demo=1</code>).</p>
+          <div class="row"><input id="refAuthor" type="text" value="JUDGE" style="width:9rem"><input id="refText" type="text" placeholder="a sentence this person wrote elsewhere" style="flex:1;min-width:14rem"></div>
+          <div class="row" style="margin-top:.5rem"><button id="refBtn" class="small">Add sample</button><span class="muted" id="refMsg"></span></div>
+          <hr style="border:0;border-top:1px solid var(--rule);margin:1rem 0">
+          <p class="muted">Student page for the live step: <code id="studentUrl"></code></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="drawer" class="drawer" role="dialog" aria-modal="true" aria-label="Case detail" aria-hidden="true" tabindex="-1"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let KEY = sessionStorage.getItem("unsigned_key") || "";
+const H = () => ({ "Content-Type":"application/json", "X-Committee-Key": KEY });
+const j = async (u, o={}) => { const r = await fetch(u, { ...o, headers:H() }); if (r.status === 401) { logout(); throw new Error("login"); } const d = await r.json(); if (!r.ok) throw new Error(d.detail || r.status); return d; };
+const pretty = v => Array.isArray(v) ? v.map(x => x.replaceAll("_"," ")).join(", ") : String(v ?? "").replaceAll("_"," ");
+const esc = s => String(s).replace(/</g,"&lt;");
+const pct = v => v == null ? "—" : Math.round(v*100) + "%";
+const f2 = v => v == null ? "—" : Number(v).toFixed(2);
+const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); };
+let cardsData = null, overviewData = null, filter = "needs", placeFilter = "", selected = null;
+
+/* ---------- auth ---------- */
+function logout() { KEY = ""; sessionStorage.removeItem("unsigned_key"); $("#shell").classList.add("hidden"); $("#login").classList.remove("hidden"); }
+async function login() {
+  const r = await fetch("/api/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ passcode: $("#pass").value }) });
+  if (!r.ok) { $("#loginErr").textContent = "Wrong passcode"; return; }
+  KEY = $("#pass").value; sessionStorage.setItem("unsigned_key", KEY); $("#login").classList.add("hidden"); $("#shell").classList.remove("hidden"); refresh();
+}
+$("#loginBtn").onclick = login; $("#pass").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+$("#logoutBtn").onclick = logout;
+$("#presentBtn").onclick = () => window.open("/present", "_blank");
+$("#reportBtn").onclick = async () => { const r = await fetch("/api/report/weekly", { headers:H() }); const w = window.open("", "_blank"); w.document.write(await r.text()); w.document.close(); };
+
+/* ---------- nav ---------- */
+function show(tab) {
+  document.querySelectorAll("aside nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  ["overview","cases","proof","demo"].forEach(t => $("#"+t).classList.toggle("hidden", t !== tab));
+}
+document.querySelectorAll("aside nav button").forEach(b => b.onclick = () => show(b.dataset.tab));
+
+/* ---------- overview ---------- */
+const heatColor = n => n === 0 ? "var(--surface-2)" : n <= 2 ? "#2b4a55" : n <= 5 ? "#3d8a94" : "#f2b441";
+async function renderOverview() {
+  const o = await j("/api/overview"); overviewData = o;
+  const p = await j("/api/patterns");
+  $("#kNote").textContent = o.k; $("#weekLab").textContent = `week ${o.week}`;
+  $("#kOpen .big").textContent = o.open; $("#kOpen .delta").textContent = `${o.immediate} immediate`; $("#kOpen").classList.toggle("hot", o.immediate > 0);
+  $("#kWeek").textContent = o.this_week; $("#kWeekD").textContent = `${o.last_week} last week`;
+  $("#kPend").textContent = o.pending_release;
+  $("#kAlerts .big").textContent = p.alerts.length; $("#kAlerts").classList.toggle("hot", p.alerts.length > 0);
+  const rows = o.rows.map(r => `<div class="hc"><span class="rl">${pretty(r)}</span>${o.cols.map(c => { const cell = o.grid.find(x => x.row===r && x.col===c); const n = cell.n; return `<div class="cell ${cell.suppressed?"sup":""}" data-r="${r}" data-c="${c}" style="background:${heatColor(n)}" title="${pretty(r)} · ${c}">${cell.suppressed ? "·" : (n || "")}</div>`; }).join("")}</div>`);
+  $("#heat").innerHTML = `<div class="hc"><span></span>${o.cols.map(c => `<span class="ch">${c}</span>`).join("")}</div>` + rows.join("");
+  $("#heat").querySelectorAll(".cell").forEach(el => el.onclick = () => { placeFilter = el.dataset.r; filter = "all"; $("#q").value = pretty(el.dataset.r); show("cases"); renderCases(); });
+  $("#alerts").innerHTML = p.alerts.length ? p.alerts.map(a => `<div class="card alert" style="margin-bottom:.8rem"><h3>${esc(a.message)}</h3><div class="meta">p = ${a.p_value.toExponential(1)} · usual ${a.baseline_per_week}/week · ${a.cards_this_week} distinct cards</div><p>${esc(a.suggested_action)}</p><div class="row" style="margin-top:.5rem"><button class="small" onclick="placeFilter='${a.location}';filter='all';document.querySelector('#q').value='${pretty(a.location)}';show('cases');renderCases()">Open these cases</button></div></div>`).join("")
+    : `<div class="card"><p class="muted" style="margin:0">Nothing rising this week. An alert appears when one place × time × behaviour has at least ${o.k} distinct cards, more than its own history explains.</p></div>`;
+  const max = Math.max(1, ...o.series.map(s => s.n));
+  $("#spark").innerHTML = o.series.map(s => `<div class="${s.week===o.week?"now":""}" style="height:${Math.max(4, s.n/max*100)}%" title="${s.n}"><span>${s.n}</span></div>`).join("");
+  const need = (cardsData || await j("/api/cards")).cards.filter(d => !d.parent_id && d.status === "received" && d.urgency !== "routine").slice(0, 6);
+  $("#need").innerHTML = need.length ? need.map(d => `<button onclick="openCard(${d.id})"><span class="pill ${d.urgency}">${d.urgency}</span><span class="t">${pretty(d.types)} · ${pretty(d.location)} · ${pretty(d.time_bucket)}</span><span class="d">#${d.id}</span></button>`).join("") : `<p class="muted" style="margin:0">Nothing waiting. Immediate and soon cards appear here until someone opens them.</p>`;
+}
+
+/* ---------- cases ---------- */
+document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filter = b.dataset.f; placeFilter = ""; renderCases(); });
+$("#q").addEventListener("input", () => { placeFilter = ""; renderCases(); });
+function visible(d) {
+  if (d.parent_id) return false;
+  if (filter === "needs" && d.status !== "received") return false;
+  if (filter === "in_progress" && d.status !== "in_progress") return false;
+  if (filter === "resolved" && d.status !== "resolved") return false;
+  const q = $("#q").value.trim().toLowerCase();
+  if (q) { const hay = [d.location, d.time_bucket, d.types.join(" "), d.behaviours.join(" "), d.urgency, d.distress].join(" ").replaceAll("_"," ").toLowerCase(); if (!hay.includes(q)) return false; }
+  return true;
+}
+async function renderCases() {
+  cardsData = cardsData || await j("/api/cards"); const c = cardsData;
+  document.querySelectorAll(".chips button").forEach(b => b.classList.toggle("on", b.dataset.f === filter));
+  $("#needCnt").textContent = c.cards.filter(d => !d.parent_id && d.status === "received").length || "";
+  const list = c.cards.filter(visible);
+  $("#casesLab").textContent = `${list.length} shown · ${c.pending_release} awaiting release · ${c.below_k} at coarsest level`;
+  $("#rows").innerHTML = list.map(d => `<tr data-id="${d.id}" class="${selected===d.id?"sel":""}"><td><span class="pill ${d.urgency}">${d.urgency}</span></td><td><span class="pill ${d.distress}">${d.distress}</span></td><td class="what">${pretty(d.types)}${d.behaviours.length?` <span class="muted">· ${pretty(d.behaviours)}</span>`:""}</td><td>${pretty(d.location)} · ${pretty(d.time_bucket)}</td><td class="muted">${d.day}</td><td><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></td><td class="muted">${c.cards.filter(x=>x.parent_id===d.id).length?"＋":""}${d.n_replies?" ✉":""}</td></tr>`).join("")
+    || `<tr><td colspan="7" class="muted">Nothing here. ${filter==="needs"?"No cards are waiting to be opened.":""}</td></tr>`;
+  $("#rows").querySelectorAll("tr[data-id]").forEach(tr => { tr.tabIndex = 0; tr.setAttribute("role", "button"); tr.onclick = () => openCard(+tr.dataset.id); tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(+tr.dataset.id); } }; });
+}
+async function openCard(id) {
+  cardsData = cardsData || await j("/api/cards");
+  const d = cardsData.cards.find(x => x.id === id); if (!d) return;
+  selected = id; renderCases();
+  const a = d.audit || {}; const demo = a.raw_p_true != null;
+  const rel = demo ? a.released_p_true : a.leak_tv, raw = demo ? a.raw_p_true : a.raw_top_prob;
+  const adds = cardsData.cards.filter(x => x.parent_id === id);
+  const why = (d.why.distress||[]).slice(0,3).map(w => `<b>${esc(w)}</b>`).concat((d.why.extracted_spans||[]).slice(0,4).map(w => `<b>${esc(w)}</b>`)).join(" ");
+  $("#drawer").innerHTML = `<button class="ghost small close" id="dClose" aria-label="Close case detail">✕</button>
+    <span class="lab">Case #${d.id} · ${d.day}</span>
+    <h2>${pretty(d.types)}</h2>
+    <div class="row"><span class="pill ${d.urgency}">${d.urgency}</span><span class="pill ${d.distress}">distress ${d.distress}</span><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></div>
+    <p class="narr">${esc(d.narrative)}</p>
+    <dl class="fields"><dt>where</dt><dd>${pretty(d.location)}</dd><dt>when</dt><dd>${pretty(d.time_bucket)}</dd><dt>who</dt><dd>${pretty(d.actor_role)}</dd><dt>behaviours</dt><dd>${pretty(d.behaviours)||"—"}</dd></dl>
+    <div class="why">Classified from: ${why || "—"}${d.generalisation_steps.length?`<br>Widened so that ≥ k cards share it: ${esc(d.generalisation_steps.join("; "))}`:""}${d.k_satisfied?"":"<br>Shown at the coarsest level — fewer than k similar cards yet."}</div>
+    ${d.facts && Object.keys(d.facts).length ? `<span class="lab" style="margin-top:.6rem">Facts the account was built from</span><div class="fchips">${factChips(d)}</div>` : ""}
+    <div class="audit">
+      <div class="row"><span class="lab">Style audit</span><label class="muted" style="font-size:.8rem"><input type="checkbox" id="dRaw"> what the attacker could do with the raw text</label></div>
+      <div class="row" style="margin-top:.4rem"><div class="meter" style="flex:1"><i id="dMeter"></i></div><span class="val" id="dVal"></span></div>
+      <p class="muted" id="dExp" style="margin:.4rem 0 0"></p>
+      <p class="muted" style="margin:.2rem 0 0">Raw text discarded after ${d.raw_discarded_after_ms} ms.</p>
+    </div>
+    <span class="lab">Thread</span>
+    <div class="thread">${adds.map(x => `<div class="item"><span class="who">Student added</span>${esc(x.narrative)}</div>`).join("")}${d.n_replies?`<div class="item muted">${d.n_replies} repl${d.n_replies>1?"ies":"y"} sent — the student reads them with their passphrase.</div>`:""}${!adds.length && !d.n_replies ? `<div class="item muted">No replies yet.</div>`:""}</div>
+    <textarea id="dReply" placeholder="Reply to the student. They will read this with their passphrase — you will never know who they are."></textarea>
+    <div class="row" style="margin-top:.5rem"><button class="primary small" id="dSend">Send reply</button>${d.status!=="in_progress"?'<button class="small ghost st" data-st="in_progress">Mark in progress</button>':""}${d.status!=="resolved"?'<button class="small ghost st" data-st="resolved">Resolve</button>':""}${d.status==="resolved"?'<button class="small ghost st" data-st="received">Reopen</button>':""}</div>`;
+  const nTok = a.narrative_tokens || 0, nFor = a.foreign_tokens || 0;
+  const setMeter = showRaw => {
+    if (showRaw) { const v = raw; $("#dMeter").style.width = Math.max(2, v*100) + "%"; $("#dMeter").style.background = "var(--bad)"; $("#dVal").textContent = pct(v);
+      $("#dExp").textContent = demo ? `With the raw text, the attacker put ${pct(raw)} on the reference author (chance ${pct(a.chance)}). That text is gone.` : `With the raw text, the attacker attributed it with ${pct(raw)} confidence (chance ${pct(a.chance)}). That text is gone.`; return; }
+    if (demo) { $("#dMeter").style.width = Math.max(2, rel*100) + "%"; $("#dMeter").style.background = rel > (a.chance||0)+0.1 ? "var(--bad)" : "var(--ok)"; $("#dVal").textContent = pct(rel);
+      $("#dExp").textContent = `On the released account the attacker puts ${pct(rel)} on the reference author — chance is ${pct(a.chance)}.`; return; }
+    $("#dMeter").style.width = Math.max(2, nTok ? nFor/nTok*100 : 0) + "%"; $("#dMeter").style.background = nFor ? "var(--bad)" : "var(--ok)"; $("#dVal").textContent = `${nFor} / ${nTok}`;
+    $("#dExp").textContent = `${nTok} words in the released account, ${nFor} of them the student's. Every word comes from Unsigned's own lexicon — there is no style to link.`;
+  };
+  setMeter(false);
+  $("#dRaw").onchange = e => setMeter(e.target.checked);
+  $("#dClose").onclick = closeDrawer;
+  $("#dSend").onclick = async () => { const t = $("#dReply").value.trim(); if (!t) return; await j(`/api/cards/${id}/reply`, { method:"POST", body: JSON.stringify({ text:t }) }); toast("Reply sent"); cardsData = null; openCard(id); };
+  $("#drawer").querySelectorAll(".st").forEach(b => b.onclick = async () => { await j(`/api/cards/${id}/status`, { method:"POST", body: JSON.stringify({ status:b.dataset.st }) }); toast("Status updated"); cardsData = null; openCard(id); renderOverview(); });
+  _returnFocus = document.activeElement;
+  $("#drawer").classList.add("open"); $("#drawer").setAttribute("aria-hidden", "false");
+  setTimeout(() => $("#dClose").focus(), 60);
+}
+let _returnFocus = null;
+const NICE = { none:"none", some:"some money", under_100:"under ₹100", "100_500":"₹100–500", "500_2000":"₹500–2000", over_2000:"over ₹2000", under_30m:"under 30 min", "30m_2h":"30 min – 2 h", "2h_5h":"2–5 hours", over_5h:"over 5 hours", unknown:"not said", once:"once", repeated:"more than once", daily:"every day", one:"one person", few:"a few", group:"a group" };
+const nice = v => NICE[v] ?? pretty(v);
+function factChips(d) {
+  const f = d.facts, gen = {}; (d.fact_status||[]).forEach(s => { if (s.status === "generalised") gen[s.field] = s; });
+  const groups = [["what they did", f.acts||[]],["who", [f.actor_role, f.actor_count]],["where · when", [f.location, f.time_bucket]],["how often · how long", [f.frequency, f.duration]],["money", [f.amount]],["online / media", f.digital||[]],["effect", f.consequences||[]],["flags", [f.public?"others present":null, f.ongoing?"still going on":null].filter(Boolean)]];
+  const fieldOf = { actor_role:1, actor_count:1, location:1, time_bucket:1, frequency:1, duration:1, amount:1 };
+  return groups.map(([label, vals]) => vals.filter(v => v && v !== "unknown" && v !== "none").length ? `<div class="fgrp"><span class="k">${label}</span>${vals.filter(v => v && v !== "unknown" && v !== "none").map(v => { const g = Object.values(gen).find(x => x.released === v); return `<span class="chip ${g?"gen":""}">${nice(v)}${g?`<em>← ${nice(g.original)}</em>`:""}</span>`; }).join("")}</div>` : "").join("");
+}
+function closeDrawer() { $("#drawer").classList.remove("open"); $("#drawer").setAttribute("aria-hidden", "true"); selected = null; renderCases(); if (_returnFocus && _returnFocus.focus) _returnFocus.focus(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+
+/* ---------- privacy proof ---------- */
+async function renderProof() {
+  const a = await j("/api/audit"); const ev = a.evaluation || {}; const c0 = ev.c0 || {};
+  $("#seedWarn").classList.toggle("hidden", !ev.dev_seed);
+  $("#capBits").textContent = a.channel_capacity_bits;
+  $("#stepper").innerHTML = [["Text arrives","in memory only",""],["Classify","distress · urgency · type · sarcasm",""],["Extract","where · when · who · behaviours",""],["Facts","who · what · where · when · how much","closed values only"],["k-anonymity","generalise until ≥ k share it",`k = ${a.k}`],["Account","generated from the lexicon",`${a.lexicon_size ?? "–"} words`],["Discard","raw text destroyed",`${a.raw_discarded_after_ms.p50 ?? "–"} ms median`]]
+    .map((s,i) => `<div class="${i===6?"last":""}"><b>${s[0]}</b>${s[1]}<em>${s[2]}</em></div>`).join("");
+  const bars = [["Raw text (what every anonymous box leaks)", ev.attacker_acc_raw, "var(--bad)"],["After normalising spelling & punctuation", ev.attacker_acc_norm, "var(--warn)"],["Released accounts", ev.attacker_acc_cards, "var(--ok)"]];
+  $("#bars").innerHTML = bars.map(b => `<div class="bar"><span>${b[0]}</span><div class="track"><i data-w="${(b[1]||0)*100}" style="background:${b[2]}"></i><span class="chance" style="left:${(ev.chance||0)*100}%"></span></div><span class="v">${pct(b[1])}</span></div>`).join("");
+  setTimeout(() => $("#bars").querySelectorAll("i").forEach(i => i.style.width = Math.max(1, i.dataset.w) + "%"), 60);
+  const fz = ev.fuzz, si = ev.style_invariance, fb = a.feedback || {};
+  if (fz) { const L = fz.leaks || {}; $("#fzInputs").textContent = `${fz.inputs.toLocaleString()} · ${fz.total_leaks} leaks`; $("#fzSub").textContent = `${fz.canaries.toLocaleString()} planted canary words — in the account ${L.canary_in_account ?? 0} · in the stored card ${L.canary_in_card ?? 0} · student words in the account ${L.student_word_in_account ?? 0} · foreign tokens ${L.foreign_tokens ?? 0} · run ${fz.run_date}`; }
+  else { $("#fzInputs").textContent = "not run"; $("#fzSub").textContent = "python scripts/fuzz_release_channel.py"; }
+  if (si) { $("#siVal").textContent = `${si.account_identical} / ${si.incidents}`; $("#siSub").textContent = `${si.incidents} incidents × ${si.styles_per_incident} styles (lowercase, CAPS+emoji, formal, Marathi, SMS, sarcastic, Devanagari) — ${si.account_identical} produce one identical account; the attacker sees ${si.rows ? si.rows[0].attacker_authors_on_raw : "–"} different authors in the raw texts · run ${si.run_date}`; }
+  else { $("#siVal").textContent = "not run"; $("#siSub").textContent = "python scripts/style_invariance.py"; }
+  const u = fb.understood_card || {yes:0,no:0}, sfb = fb.felt_safe || {yes:0,no:0}; const nU = u.yes + u.no, nS = sfb.yes + sfb.no;
+  $("#fbVal").textContent = nU || nS ? `${nU ? Math.round(u.yes/nU*100) : "–"}% · ${nS ? Math.round(sfb.yes/nS*100) : "–"}%` : "no responses yet";
+  $("#fbSub").textContent = nU || nS ? `understood the card ${u.yes}/${nU} · felt safe ${sfb.yes}/${nS} — answered on the student page after sending` : "answered by students on the page after sending; counts only, nothing linkable";
+  $("#lexWords").textContent = `${ev.narrative_words ?? "–"} · ${ev.lexicon_violations ?? "–"}`; $("#lexSize").textContent = a.lexicon_size ?? "–";
+  $("#accNarr").textContent = pct(ev.attacker_acc_cards); $("#chanceNarr").textContent = pct(ev.chance); $("#narrBits").textContent = `${a.narrative_capacity_bits ?? "–"} bits`;
+  $("#kVal").textContent = "k = " + a.k; $("#genVal").textContent = ev.cards_generalised != null ? `${ev.cards_generalised} of ${ev.n_texts} test cards were generalised.` : "";
+  $("#latVal").textContent = (a.raw_discarded_after_ms.p50 ?? "–") + " ms"; $("#latSub").textContent = `median over ${a.raw_discarded_after_ms.n} submissions · max ${a.raw_discarded_after_ms.max ?? "–"} ms`;
+  const sy = c0.system || {};
+  $("#f1Val").textContent = `F1 ${f2(c0.distress)} → ${f2(sy.distress)}`; $("#f1Sub").textContent = `distress, classifier alone → classifier + facts + rules · false alerts on mundane ${pct(c0.false_alert_rate)} → ${pct(sy.false_alert_rate)} · sarcastic-subset distress ${f2(c0.distress_sarcastic)} → ${f2(sy.distress_sarcastic)} · urgency ${f2(c0.urgency)} → ${f2(sy.urgency)}`;
+  $("#evDate").textContent = ev.run_date ? `evaluate.py run ${ev.run_date} on ${ev.corpus} — ${ev.n_authors} authors, ${ev.n_texts} texts, chance ${pct(ev.chance)}; pairwise linkability AUC raw ${f2(ev.link_auc_raw)} → cards ${f2(ev.link_auc_cards)}.` : "evaluate.py has not been run.";
+}
+$("#tryBtn").onclick = async () => { const A = $("#tA").value.trim(), B = $("#tB").value.trim(); if (A.length < 5 || B.length < 5) return; const r = await j("/api/attacker/link", { method:"POST", body: JSON.stringify({ texts:[A,B] }) }); const p = r.pairs[0].same_author; $("#tryOut").innerHTML = `same-author score <b style="color:${p>0.5?"var(--bad)":"var(--ok)"}">${pct(p)}</b>`; };
+
+/* ---------- demo setup ---------- */
+async function renderDemo() {
+  const d = await j("/api/demo/texts");
+  $("#demoTexts").innerHTML = d.texts.map((t,i) => `<textarea data-i="${i}" style="min-height:64px;margin-bottom:.4rem">${esc(t)}</textarea>`).join("");
+  $("#studentUrl").textContent = location.origin + "/?demo=1";
+}
+$("#demoAdd").onclick = () => { if ($("#demoTexts").children.length < 5) $("#demoTexts").insertAdjacentHTML("beforeend", `<textarea style="min-height:64px;margin-bottom:.4rem"></textarea>`); };
+$("#demoSave").onclick = async () => { const texts = [...$("#demoTexts").querySelectorAll("textarea")].map(t => t.value.trim()).filter(t => t.length >= 5); if (texts.length < 2) return; await j("/api/demo/texts", { method:"POST", body: JSON.stringify({ texts }) }); toast("Saved for Present mode"); };
+$("#demoReset").onclick = async () => { await j("/api/demo/texts", { method:"POST", body: JSON.stringify({ texts:["wow such a warm welcome from seniors?? 3 hours standing in hostel B corridor at night, great tradition hmm","BHAI kal raat seniors ne hostel B second floor pe bulaya aur 3 ghante KHADE rakha!!! 😭😭 intro intro intro!!!","nothing serious?? just the usual comments about how we dress, in the lab, every single day. hmm. fine I guess"] }) }); renderDemo(); };
+$("#refBtn").onclick = async () => { try { const r = await j("/api/attacker/reference", { method:"POST", body: JSON.stringify({ author: $("#refAuthor").value.trim(), text: $("#refText").value.trim() }) }); $("#refMsg").textContent = `attacker now knows ${r.reference_authors} authors`; $("#refText").value = ""; } catch (e) { $("#refMsg").textContent = e.message; } };
+
+/* ---------- boot ---------- */
+async function refresh() { try { cardsData = null; await renderCases(); await Promise.all([renderOverview(), renderProof(), renderDemo()]); } catch (e) { if (e.message !== "login") console.error(e); } }
+if (KEY) { $("#shell").classList.remove("hidden"); refresh(); } else { $("#login").classList.remove("hidden"); }
+setInterval(() => { if (KEY && !$("#drawer").classList.contains("open")) { cardsData = null; renderCases(); renderOverview(); } }, 8000);
+</script>
+</body>
+</html>

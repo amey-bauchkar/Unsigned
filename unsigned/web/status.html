@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Unsigned — your case</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  .top { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  .brand { font:800 .8rem var(--ui); letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); }
+  .top a { font-size:.85rem; color:var(--muted); text-decoration:none; }
+  h1 { font:500 2.2rem/1.05 var(--serif); margin:2rem 0 .4rem; }
+  .lede { font:400 1.05rem var(--serif); color:var(--muted); }
+  .open { display:flex; gap:.6rem; margin:1rem 0; }
+  .open input { font:500 1rem var(--mono); }
+  .statusline { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+  .status { display:inline-block; padding:.3rem .8rem; border-radius:999px; font-weight:700; font-size:.85rem; }
+  .received { background:var(--warn-wash); color:var(--warn); } .in_progress { background:var(--accent-wash); color:var(--accent-ink); } .resolved { background:var(--ok-wash); color:var(--ok); }
+  .timeline { margin:1rem 0 0; padding:0; list-style:none; border-left:2px solid var(--rule); }
+  .timeline li { position:relative; padding:0 0 1rem 1.1rem; }
+  .timeline li::before { content:""; position:absolute; left:-7px; top:.35rem; width:12px; height:12px; border-radius:50%; background:var(--accent); }
+  .timeline li.sys::before { background:var(--rule-strong); }
+  .timeline .who { font:700 .68rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:block; }
+  .timeline .msg { font:400 1.05rem/1.5 var(--serif); }
+  .timeline time { font-size:.78rem; color:var(--muted); }
+  .add textarea { font:400 1.05rem/1.5 var(--serif); min-height:120px; }
+</style>
+</head>
+<body class="student">
+<main class="narrow">
+  <div class="top"><span class="brand">Unsigned · anti-ragging cell</span><a href="/">← Report something new</a></div>
+  <h1>Your case</h1>
+  <p class="lede">Enter the passphrase you were given. It is the only link to your case — there is no name, number or account behind it.</p>
+  <div class="open">
+    <label for="token" class="lab" style="width:100%">Passphrase</label>
+    <input id="token" type="text" placeholder="e.g. cedar-iris-tiger-umber-37e2" autocomplete="off" spellcheck="false" aria-describedby="err">
+    <button id="look" class="primary">Open</button>
+  </div>
+  <p class="muted" id="err" role="alert"></p>
+
+  <section id="case" class="card hidden" aria-live="polite">
+    <div class="statusline"><span class="lab">Status</span><span id="st" class="status"></span><span class="muted" id="line"></span></div>
+    <ul class="timeline" id="tl"></ul>
+    <div class="add">
+      <span class="lab">Add information</span>
+      <p class="muted" style="margin:.2rem 0 .6rem">Goes through the same process — it becomes a card, your words are destroyed, and it is attached to this case.</p>
+      <textarea id="more" placeholder="Anything else the committee should know?" maxlength="2000"></textarea>
+      <div class="row" style="margin-top:.6rem"><button id="add">Send addition</button><span class="muted" id="addmsg"></span></div>
+    </div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const PAD = 2048;
+const j = async (u, o) => { const r = await fetch(u, o); const d = await r.json(); if (!r.ok) throw new Error(d.detail || r.status); return d; };
+const WORDS = { received:"Received — not yet opened by the committee", in_progress:"In progress — the committee is acting on it", resolved:"Resolved" };
+let tok = decodeURIComponent(location.hash.slice(1)); if (tok) $("token").value = tok;
+
+async function load() {
+  tok = $("token").value.trim(); $("err").textContent = "";
+  try {
+    const d = await j("/api/status/" + encodeURIComponent(tok));
+    $("st").textContent = d.status.replace("_"," "); $("st").className = "status " + d.status;
+    $("line").textContent = d.released ? WORDS[d.status] : `Reaches the committee in about ${Math.max(1, Math.round(d.releases_in_seconds/60))} minute(s).`;
+    const items = [`<li class="sys"><span class="who">You</span><span class="msg">Card sent. Your words were destroyed.</span></li>`]
+      .concat(Array.from({length:d.followups}, () => `<li class="sys"><span class="who">You</span><span class="msg">Information added.</span></li>`))
+      .concat(d.replies.map(r => `<li><span class="who">Committee</span><span class="msg">${r.text.replace(/</g,"&lt;")}</span><time>${new Date(r.at*1000).toLocaleString()}</time></li>`));
+    if (!d.replies.length) items.push(`<li class="sys"><span class="who">Committee</span><span class="msg muted">No reply yet. Replies appear here, and only here.</span></li>`);
+    $("tl").innerHTML = items.join("");
+    $("case").classList.remove("hidden");
+  } catch (e) { $("err").textContent = e.message; $("case").classList.add("hidden"); }
+}
+$("look").onclick = load;
+$("token").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+$("add").onclick = async () => {
+  const t = $("more").value.trim(); if (t.length < 5) return;
+  try {
+    const r = await j("/api/status/" + encodeURIComponent(tok) + "/add", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ text:t, padding:"x".repeat(Math.max(0, PAD - t.length)) }) });
+    $("more").value = ""; $("addmsg").textContent = `Added — words discarded after ${r.raw_discarded_after_ms} ms.`; load();
+  } catch (e) { $("addmsg").textContent = e.message; }
+};
+if (tok) load();
+</script>
+</body>
+</html>
