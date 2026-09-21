@@ -256,45 +256,50 @@
     margin-bottom:1.3rem;
   }
   .tile {
-    background:var(--surface);
-    border:1px solid var(--rule);
-    border-radius:14px;
-    padding:1.15rem 1.25rem;
-    display:grid;
-    gap:.35rem;
-    align-content:start;
-    box-shadow:0 1px 3px rgba(31,29,26,0.03);
-    transition:transform .15s var(--ease), box-shadow .15s, border-color .15s;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+    display: grid;
+    gap: .35rem;
+    align-content: start;
+    box-shadow: var(--shadow-sm);
+    transition: transform .18s var(--ease), box-shadow .18s, border-color .18s;
   }
   .tile:hover {
-    transform:translateY(-2px);
-    box-shadow:0 6px 16px rgba(31,29,26,0.06);
-    border-color:var(--rule-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--rule-strong);
   }
   .tile .delta {
-    font-size:.82rem;
-    color:var(--muted);
-    line-height:1.35;
+    font-size: .82rem;
+    color: var(--muted);
+    line-height: 1.35;
   }
   .tile.hot {
-    border-color:var(--bad);
-    background:linear-gradient(135deg, var(--surface) 60%, var(--bad-wash) 100%);
+    border-color: var(--bad);
+    background: linear-gradient(135deg, var(--surface) 60%, var(--bad-wash) 100%);
+    box-shadow: 0 0 0 1px var(--bad);
   }
   .big {
-    font:600 2.2rem/1.05 var(--num);
-    font-variant-numeric:tabular-nums;
-    letter-spacing:-.02em;
-    color:var(--ink);
+    font: 700 2.2rem/1.05 var(--num);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+    color: var(--ink);
   }
   
   /* Grid & Block layouts */
   .two { display:grid; grid-template-columns:3fr 2fr; gap:1.1rem; margin-bottom:1.1rem; }
   .card {
-    background:var(--surface);
-    border:1px solid var(--rule);
-    border-radius:14px;
-    padding:1.25rem 1.35rem;
-    box-shadow:0 1px 3px rgba(31,29,26,0.03);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .2s var(--ease), border-color .2s;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-md);
   }
   .blockhead {
     display:flex;
@@ -559,21 +564,24 @@
   table.cases { border-collapse:collapse; width:100%; }
   table.cases th {
     background:var(--surface-2);
-    padding:.75rem .9rem;
+    padding:.85rem 1rem;
     font:700 .68rem var(--ui);
     letter-spacing:.1em;
     color:var(--muted);
     border-bottom:1px solid var(--rule-strong);
+    text-transform:uppercase;
   }
   table.cases td {
-    padding:.8rem .9rem;
+    padding:.9rem 1rem;
     border-bottom:1px solid var(--rule);
-    transition:background .12s;
+    transition:background .15s var(--ease);
   }
-  table.cases tr { cursor:pointer; }
-  table.cases tr:hover td { background:var(--surface-2); }
-  table.cases tr.sel td { background:var(--accent-wash); }
-  table.cases td.what { max-width:340px; font:500 .95rem var(--serif); color:var(--ink); }
+  table.cases tbody tr { cursor:pointer; transition:background .15s; }
+  table.cases tbody tr:nth-child(even) td { background:rgba(255,255,255,0.012); }
+  table.cases tbody tr:hover td { background:var(--surface-2); }
+  table.cases tbody tr.sel td { background:var(--accent-wash); }
+  table.cases tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  table.cases td.what { max-width:340px; font:500 .98rem/1.4 var(--serif); color:var(--ink); }
 
   /* Case Detail Drawer */
   .drawer {
@@ -1112,6 +1120,12 @@ async function openCard(id) {
     </div>
     <span class="lab" style="margin-top:.8rem">Anonymous communication thread</span>
     <div class="thread">${adds.map(x => `<div class="item"><span class="who">Student added</span>${esc(x.narrative)}</div>`).join("")}${d.n_replies?`<div class="item muted">${d.n_replies} repl${d.n_replies>1?"ies":"y"} sent — the student reads them with their passphrase.</div>`:""}${!adds.length && !d.n_replies ? `<div class="item muted">No replies yet.</div>`:""}</div>
+    <div class="qrep-row" style="display:flex;gap:.4rem;flex-wrap:wrap;margin:.6rem 0 .45rem">
+      <span class="lab" style="width:100%;margin-bottom:.15rem">Quick response presets:</span>
+      <button type="button" class="small ghost qrep" data-txt="Warden rounds in this hostel have been doubled from tonight. Please post any updates here.">Warden rounds doubled</button>
+      <button type="button" class="small ghost qrep" data-txt="The anti-ragging squad has been dispatched for active night monitoring. You are safe.">Squad dispatched</button>
+      <button type="button" class="small ghost qrep" data-txt="Thank you. We have initiated targeted inspections based on this report.">Action initiated</button>
+    </div>
     <textarea id="dReply" placeholder="Reply to the student. They will read this with their passphrase — you will never know who they are."></textarea>
     <div class="row" style="margin-top:.6rem"><button class="primary small" id="dSend">Send reply</button>${d.status!=="in_progress"?'<button class="small ghost st" data-st="in_progress">Mark in progress</button>':""}${d.status!=="resolved"?'<button class="small ghost st" data-st="resolved">Resolve</button>':""}${d.status==="resolved"?'<button class="small ghost st" data-st="received">Reopen</button>':""}</div>`;
   const nTok = a.narrative_tokens || 0, nFor = a.foreign_tokens || 0;
@@ -1126,6 +1140,7 @@ async function openCard(id) {
   setMeter(false);
   $("#dRaw").onchange = e => setMeter(e.target.checked);
   $("#dClose").onclick = closeDrawer;
+  $("#drawer").querySelectorAll(".qrep").forEach(b => b.onclick = () => { $("#dReply").value = b.dataset.txt; $("#dReply").focus(); });
   $("#dSend").onclick = async () => { const t = $("#dReply").value.trim(); if (!t) return; await j(`/api/cards/${id}/reply`, { method:"POST", body: JSON.stringify({ text:t }) }); toast("Reply sent"); cardsData = null; openCard(id); };
   $("#drawer").querySelectorAll(".st").forEach(b => b.onclick = async () => { await j(`/api/cards/${id}/status`, { method:"POST", body: JSON.stringify({ status:b.dataset.st }) }); toast("Status updated"); cardsData = null; openCard(id); renderOverview(); });
   _returnFocus = document.activeElement;

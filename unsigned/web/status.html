@@ -4,84 +4,490 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Unsigned — your case</title>
+<title>Unsigned — Case Status & Follow-Up</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="/app.css">
 <style>
-  .top { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
-  .brand { font:800 .8rem var(--ui); letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); }
-  .top a { font-size:.85rem; color:var(--muted); text-decoration:none; }
-  h1 { font:500 2.2rem/1.05 var(--serif); margin:2rem 0 .4rem; }
-  .lede { font:400 1.05rem var(--serif); color:var(--muted); }
-  .open { display:flex; gap:.6rem; margin:1rem 0; }
-  .open input { font:500 1rem var(--mono); }
-  .statusline { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
-  .status { display:inline-block; padding:.3rem .8rem; border-radius:999px; font-weight:700; font-size:.85rem; }
-  .received { background:var(--warn-wash); color:var(--warn); } .in_progress { background:var(--accent-wash); color:var(--accent-ink); } .resolved { background:var(--ok-wash); color:var(--ok); }
-  .timeline { margin:1rem 0 0; padding:0; list-style:none; border-left:2px solid var(--rule); }
-  .timeline li { position:relative; padding:0 0 1rem 1.1rem; }
-  .timeline li::before { content:""; position:absolute; left:-7px; top:.35rem; width:12px; height:12px; border-radius:50%; background:var(--accent); }
-  .timeline li.sys::before { background:var(--rule-strong); }
-  .timeline .who { font:700 .68rem var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:block; }
-  .timeline .msg { font:400 1.05rem/1.5 var(--serif); }
-  .timeline time { font-size:.78rem; color:var(--muted); }
-  .add textarea { font:400 1.05rem/1.5 var(--serif); min-height:120px; }
+  /* Fullscreen Top Nav */
+  .top-nav-wrap {
+    width: 100%;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: var(--shadow-xs);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .top-nav-inner {
+    width: 100%;
+    padding: 1.15rem clamp(1.5rem, 4vw, 4.5rem);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+  }
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .shield-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--accent);
+  }
+  .brand-title {
+    font: 800 0.85rem var(--ui);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+  }
+  .back-link {
+    font: 700 0.88rem var(--ui);
+    color: var(--accent-ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: var(--trans);
+  }
+  .back-link:hover { opacity: 0.85; transform: translateX(-2px); }
+
+  /* Main Container */
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 2.4rem 2rem 5rem;
+    box-sizing: border-box;
+  }
+
+  /* Hero */
+  .hero-case {
+    margin: 0.5rem 0 1.8rem;
+  }
+  .hero-case h1 {
+    font: 500 2.6rem/1.1 var(--serif);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+  .hero-case p {
+    font: 400 1.15rem/1.6 var(--serif);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* Passphrase Input Card */
+  .lookup-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    padding: 1.4rem 1.6rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.8rem;
+    transition: var(--trans);
+  }
+  .lookup-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+  }
+  .open-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.65rem;
+  }
+  .open-row input {
+    font: 600 1.1rem var(--mono);
+    letter-spacing: 0.02em;
+    border-radius: 12px;
+  }
+  .open-row button {
+    flex-shrink: 0;
+    padding: 0 1.6rem;
+  }
+  .err-msg {
+    color: var(--bad);
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-top: 0.6rem;
+    min-height: 1.2rem;
+  }
+
+  /* Case Card */
+  .case-container {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    padding: 1.6rem 1.8rem;
+    box-shadow: var(--shadow-md);
+    animation: rise 0.4s var(--ease);
+  }
+
+  .status-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .status-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 999px;
+    font: 700 0.82rem var(--ui);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .status-badge.received { background: var(--warn-wash); color: var(--warn); border: 1px solid rgba(212, 138, 12, 0.3); }
+  .status-badge.in_progress { background: var(--accent-wash); color: var(--accent-ink); border: 1px solid rgba(31, 111, 120, 0.3); }
+  .status-badge.resolved { background: var(--ok-wash); color: var(--ok); border: 1px solid rgba(47, 143, 91, 0.3); }
+  
+  .status-desc {
+    font: 500 0.95rem var(--ui);
+    color: var(--muted);
+  }
+
+  /* Timeline / Stepper */
+  .timeline-header {
+    font: 700 0.74rem var(--ui);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1.5rem 0 1.1rem;
+  }
+  .timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    position: relative;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 10px;
+    bottom: 20px;
+    width: 2px;
+    background: var(--rule-strong);
+  }
+  .timeline li {
+    position: relative;
+    padding: 0 0 1.4rem 42px;
+  }
+  .timeline-node {
+    position: absolute;
+    left: 10px;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 3px solid var(--accent);
+    box-shadow: 0 0 0 3px var(--ground);
+    z-index: 2;
+  }
+  .timeline li.sys .timeline-node {
+    border-color: var(--rule-strong);
+  }
+  .timeline li.reply .timeline-node {
+    border-color: var(--ok);
+  }
+  
+  .timeline-content {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-xs);
+  }
+  .timeline li.reply .timeline-content {
+    background: var(--accent-wash);
+    border-color: rgba(31, 111, 120, 0.25);
+  }
+  
+  .tl-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.35rem;
+  }
+  .who-badge {
+    font: 800 0.72rem var(--ui);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .timeline li.reply .who-badge {
+    color: var(--accent-ink);
+  }
+  .time-stamp {
+    font: 600 0.76rem var(--mono);
+    color: var(--muted);
+  }
+  .msg-text {
+    font: 400 1.12rem/1.6 var(--serif);
+    color: var(--ink);
+    margin: 0;
+  }
+
+  /* Add Information Box */
+  .add-section {
+    margin-top: 1.8rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--rule-strong);
+  }
+  .add-section h3 {
+    font: 600 1.2rem var(--serif);
+    margin-bottom: 0.3rem;
+  }
+  .add-section p {
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin-bottom: 0.9rem;
+    line-height: 1.5;
+  }
+  .add-section textarea {
+    min-height: 130px;
+    font: 400 1.15rem/1.6 var(--serif);
+  }
+  .add-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.9rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .add-status {
+    font: 600 0.88rem var(--mono);
+    color: var(--ok);
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (max-width: 768px) {
+    .top-nav-inner { padding: 1rem 1.4rem; }
+    main { padding: 1.6rem 1.4rem 4rem; }
+    .hero-case h1 { font-size: 2.1rem; }
+    .open-row { flex-direction: column; }
+    .open-row button { width: 100%; }
+  }
 </style>
 </head>
 <body class="student">
-<main class="narrow">
-  <div class="top"><span class="brand">Unsigned · anti-ragging cell</span><a href="/">← Report something new</a></div>
-  <h1>Your case</h1>
-  <p class="lede">Enter the passphrase you were given. It is the only link to your case — there is no name, number or account behind it.</p>
-  <div class="open">
-    <label for="token" class="lab" style="width:100%">Passphrase</label>
-    <input id="token" type="text" placeholder="e.g. cedar-iris-tiger-umber-37e2" autocomplete="off" spellcheck="false" aria-describedby="err">
-    <button id="look" class="primary">Open</button>
+<!-- Fullscreen Top Nav -->
+<header class="top-nav-wrap">
+  <div class="top-nav-inner">
+    <div class="brand-group">
+      <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        <path d="m9 12 2 2 4-4"></path>
+      </svg>
+      <span class="brand-title">Unsigned · Anti-Ragging Cell</span>
+    </div>
+    <a class="back-link" href="/">← Report something new</a>
   </div>
-  <p class="muted" id="err" role="alert"></p>
+</header>
 
-  <section id="case" class="card hidden" aria-live="polite">
-    <div class="statusline"><span class="lab">Status</span><span id="st" class="status"></span><span class="muted" id="line"></span></div>
+<main>
+  <!-- Hero Header -->
+  <section class="hero-case">
+    <h1>Your Anonymous Case</h1>
+    <p>Enter the secret passphrase you were given upon reporting. It is the sole cryptographic link to your case — no name, student ID, or contact number is ever requested or recorded.</p>
+  </section>
+
+  <!-- Passphrase Input Card -->
+  <section class="lookup-card">
+    <label for="token" class="lab">Enter Your 4-Word Passphrase</label>
+    <div class="open-row">
+      <input id="token" type="text" placeholder="e.g. cedar-iris-tiger-umber-37e2" autocomplete="off" spellcheck="false" aria-describedby="err">
+      <button id="look" class="primary">
+        Open Case
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+    </div>
+    <p class="err-msg" id="err" role="alert"></p>
+  </section>
+
+  <!-- Case Activity Container -->
+  <section id="case" class="case-container hidden" aria-live="polite">
+    <div class="status-banner">
+      <div class="status-left">
+        <span class="lab">Current Status:</span>
+        <span id="st" class="status-badge"></span>
+      </div>
+      <span class="status-desc" id="line"></span>
+    </div>
+
+    <div class="timeline-header">Activity & Official Responses</div>
     <ul class="timeline" id="tl"></ul>
-    <div class="add">
-      <span class="lab">Add information</span>
-      <p class="muted" style="margin:.2rem 0 .6rem">Goes through the same process — it becomes a card, your words are destroyed, and it is attached to this case.</p>
-      <textarea id="more" placeholder="Anything else the committee should know?" maxlength="2000"></textarea>
-      <div class="row" style="margin-top:.6rem"><button id="add">Send addition</button><span class="muted" id="addmsg"></span></div>
+
+    <!-- Follow-Up Addition Section -->
+    <div class="add-section">
+      <h3>Add Additional Information</h3>
+      <p>Have more details or an update? Type it here. Just like your first report, this will be parsed into structured facts, your words will be destroyed in volatile RAM within ~9ms, and the card will be attached to this case.</p>
+      <textarea id="more" placeholder="Describe additional facts: new timing, places, or behaviours…" maxlength="2000"></textarea>
+      <div class="add-actions">
+        <button id="add" class="primary">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          Send Confidential Addition
+        </button>
+        <span class="add-status" id="addmsg"></span>
+      </div>
     </div>
   </section>
 </main>
+
 <script>
 const $ = id => document.getElementById(id);
 const PAD = 2048;
-const j = async (u, o) => { const r = await fetch(u, o); const d = await r.json(); if (!r.ok) throw new Error(d.detail || r.status); return d; };
-const WORDS = { received:"Received — not yet opened by the committee", in_progress:"In progress — the committee is acting on it", resolved:"Resolved" };
-let tok = decodeURIComponent(location.hash.slice(1)); if (tok) $("token").value = tok;
+const j = async (u, o) => {
+  const r = await fetch(u, o);
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || r.status);
+  return d;
+};
+const WORDS = {
+  received: "Received — safely queued for committee inspection",
+  in_progress: "In progress — the anti-ragging squad is actively addressing this",
+  resolved: "Resolved — verified institutional intervention complete"
+};
+
+let tok = decodeURIComponent(location.hash.slice(1));
+if (tok) $("token").value = tok;
 
 async function load() {
-  tok = $("token").value.trim(); $("err").textContent = "";
+  tok = $("token").value.trim();
+  $("err").textContent = "";
+  if (!tok) {
+    $("err").textContent = "Please enter your passphrase.";
+    return;
+  }
+  $("look").disabled = true;
+  $("look").textContent = "Opening…";
   try {
     const d = await j("/api/status/" + encodeURIComponent(tok));
-    $("st").textContent = d.status.replace("_"," "); $("st").className = "status " + d.status;
-    $("line").textContent = d.released ? WORDS[d.status] : `Reaches the committee in about ${Math.max(1, Math.round(d.releases_in_seconds/60))} minute(s).`;
-    const items = [`<li class="sys"><span class="who">You</span><span class="msg">Card sent. Your words were destroyed.</span></li>`]
-      .concat(Array.from({length:d.followups}, () => `<li class="sys"><span class="who">You</span><span class="msg">Information added.</span></li>`))
-      .concat(d.replies.map(r => `<li><span class="who">Committee</span><span class="msg">${r.text.replace(/</g,"&lt;")}</span><time>${new Date(r.at*1000).toLocaleString()}</time></li>`));
-    if (!d.replies.length) items.push(`<li class="sys"><span class="who">Committee</span><span class="msg muted">No reply yet. Replies appear here, and only here.</span></li>`);
+    $("st").textContent = d.status.replace("_"," ");
+    $("st").className = "status-badge " + d.status;
+    $("line").textContent = d.released ? WORDS[d.status] : `Sealed card reaches the committee in ~${Math.max(1, Math.round(d.releases_in_seconds/60))} min.`;
+    
+    const items = [
+      `<li class="sys">
+        <span class="timeline-node"></span>
+        <div class="timeline-content">
+          <div class="tl-meta">
+            <span class="who-badge">Your Sealed Report</span>
+            <span class="time-stamp">Initial Case Created</span>
+          </div>
+          <p class="msg-text">Initial structured facts extracted. Raw student text dereferenced from memory.</p>
+        </div>
+      </li>`
+    ];
+
+    for (let i = 0; i < d.followups; i++) {
+      items.push(`
+        <li class="sys">
+          <span class="timeline-node"></span>
+          <div class="timeline-content">
+            <div class="tl-meta">
+              <span class="who-badge">Your Addition</span>
+              <span class="time-stamp">Follow-Up #${i + 1}</span>
+            </div>
+            <p class="msg-text">Follow-up information attached. Raw words destroyed.</p>
+          </div>
+        </li>
+      `);
+    }
+
+    d.replies.forEach(r => {
+      items.push(`
+        <li class="reply">
+          <span class="timeline-node"></span>
+          <div class="timeline-content">
+            <div class="tl-meta">
+              <span class="who-badge">Official Anti-Ragging Cell Response</span>
+              <span class="time-stamp">${new Date(r.at * 1000).toLocaleString()}</span>
+            </div>
+            <p class="msg-text">${r.text.replace(/</g,"&lt;")}</p>
+          </div>
+        </li>
+      `);
+    });
+
+    if (!d.replies.length) {
+      items.push(`
+        <li class="sys">
+          <span class="timeline-node"></span>
+          <div class="timeline-content">
+            <div class="tl-meta">
+              <span class="who-badge">Committee Queue</span>
+              <span class="time-stamp">Awaiting Squad Briefing</span>
+            </div>
+            <p class="msg-text" style="color:var(--muted);font-style:italic">No committee reply yet. When the squad reviews your case or posts instructions, it will appear here.</p>
+          </div>
+        </li>
+      `);
+    }
+
     $("tl").innerHTML = items.join("");
     $("case").classList.remove("hidden");
-  } catch (e) { $("err").textContent = e.message; $("case").classList.add("hidden"); }
+    $("case").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    $("err").textContent = e.message;
+    $("case").classList.add("hidden");
+  } finally {
+    $("look").disabled = false;
+    $("look").innerHTML = `Open Case <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+  }
 }
+
 $("look").onclick = load;
 $("token").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+
 $("add").onclick = async () => {
-  const t = $("more").value.trim(); if (t.length < 5) return;
+  const t = $("more").value.trim();
+  if (t.length < 5) {
+    $("addmsg").textContent = "Please enter at least a few words.";
+    $("addmsg").style.color = "var(--bad)";
+    return;
+  }
+  $("add").disabled = true;
+  $("add").textContent = "Attaching…";
   try {
-    const r = await j("/api/status/" + encodeURIComponent(tok) + "/add", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ text:t, padding:"x".repeat(Math.max(0, PAD - t.length)) }) });
-    $("more").value = ""; $("addmsg").textContent = `Added — words discarded after ${r.raw_discarded_after_ms} ms.`; load();
-  } catch (e) { $("addmsg").textContent = e.message; }
+    const r = await j("/api/status/" + encodeURIComponent(tok) + "/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: t,
+        padding: "x".repeat(Math.max(0, PAD - t.length))
+      })
+    });
+    $("more").value = "";
+    $("addmsg").style.color = "var(--ok)";
+    $("addmsg").textContent = `✓ Addition attached. Raw text dereferenced in ${r.raw_discarded_after_ms} ms.`;
+    load();
+  } catch (e) {
+    $("addmsg").style.color = "var(--bad)";
+    $("addmsg").textContent = e.message;
+  } finally {
+    $("add").disabled = false;
+    $("add").innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send Confidential Addition`;
+  }
 };
+
 if (tok) load();
 </script>
 </body>
