@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import copy
 import time
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from ..privacy.attacker import StyleAttacker
 from ..privacy.audit import audit, AuditResult
@@ -81,13 +81,29 @@ def preview(text: str, clf: BaselineClassifier, released: List[Card], k: int = 3
 
 
 def process(text: str, clf: BaselineClassifier, attacker: Optional[StyleAttacker], released: List[Card], k: int = 3,
-            demo_author: Optional[str] = None, facts_override: Optional[dict] = None) -> dict:
+            demo_author: Optional[str] = None, facts_override: Optional[dict] = None,
+            event_sink: Optional[Callable[[str, str, str, Optional[int], Optional[dict]], None]] = None) -> dict:
     t0 = time.perf_counter()
     card = build_card(text, clf, facts_override)                    # stored at full detail (facts are closed values)
+    if event_sink:
+        event_sink("FACTS_EXTRACTED", "pipeline", "ok", None, {"acts_count": len(card.facts.get("acts", []))})
+
     shown, k_ok, fact_status = display(card, released, k)
+    if event_sink:
+        event_sink("GENERALIZATION_APPLIED", "privacy", "ok", None,
+                   {"k_satisfied": bool(k_ok), "widened_steps": len(shown.generalisation_steps)})
+
+    narr = shown.narrative()
+    ft = foreign_tokens(narr)
+    if event_sink:
+        event_sink("CARD_GENERATED", "pipeline", "ok", None, {"narrative_tokens": len(narr.split())})
+        event_sink("CARD_VALIDATED", "pipeline", "ok", None, {"foreign_tokens": len(ft)})
+
     result: AuditResult = audit(text, shown, attacker, demo_author=demo_author)
     elapsed_ms = int((time.perf_counter() - t0) * 1000)
     # --- the raw text is dropped here; only numbers and the card leave this function ---
     del text
+    if event_sink:
+        event_sink("RAW_BUFFER_RELEASED", "pipeline", "ok", elapsed_ms, {})
     return {"card": card, "shown": shown, "k_satisfied": k_ok, "fact_status": fact_status,
             "audit": result.to_dict(), "raw_discarded_after_ms": elapsed_ms}

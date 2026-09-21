@@ -419,7 +419,7 @@ async function load() {
           <div class="timeline-content">
             <div class="tl-meta">
               <span class="who-badge">Official Anti-Ragging Cell Response</span>
-              <span class="time-stamp">${new Date(r.at * 1000).toLocaleString()}</span>
+              <span class="time-stamp">${new Date(r.at * 1000).toLocaleDateString('en-GB')} ${new Date(r.at * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>
             <p class="msg-text">${r.text.replace(/</g,"&lt;")}</p>
           </div>

@@ -44,12 +44,21 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from ..interventions.tracker import (
+    init_interventions_table,
+    create_intervention,
+    get_interventions,
+    get_intervention_by_id,
+    update_intervention,
+)
 from ..patterns.detect import detect
 from ..pipeline.card import Card, channel_capacity_bits
 from ..pipeline.classify import BaselineClassifier, load_classifier
 from ..pipeline.run import display as _display, preview as _preview, process as _process
 from ..pipeline.narrate import LEXICON, narrative_capacity_bits
 from ..privacy.attacker import StyleAttacker
+from ..privacy.events import record_event as _record_evt, get_events
+from ..privacy.health import run_self_test
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(os.path.dirname(HERE), "web")
@@ -112,7 +121,14 @@ def init_db() -> None:
         CREATE TABLE IF NOT EXISTS audits (card_id INTEGER, audit_json TEXT NOT NULL, raw_discarded_after_ms INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS replies (card_id INTEGER, text TEXT NOT NULL, at REAL NOT NULL);
         CREATE INDEX IF NOT EXISTS idx_cards_token ON cards(token_hash);
+        CREATE TABLE IF NOT EXISTS privacy_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp REAL NOT NULL, event_type TEXT NOT NULL,
+            subsystem TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'ok', duration_ms INTEGER,
+            safe_metadata_json TEXT NOT NULL DEFAULT '{}'
+        );
+        CREATE INDEX IF NOT EXISTS idx_privacy_events_ts ON privacy_events(timestamp DESC);
         """)
+        init_interventions_table(con)
         cols = {r["name"] for r in con.execute("PRAGMA table_info(cards)")}
         for col, ddl in (("parent_id", "INTEGER"), ("resolved_at", "REAL")):
             if col not in cols:
@@ -182,6 +198,10 @@ def _load() -> None:
             _attacker = StyleAttacker().fit(data["texts"], data["authors"])
 
 
+# Initialize on import so test runners and workers have tables and models ready
+_load()
+
+
 def _require_clf() -> BaselineClassifier:
     if _clf is None:
         raise HTTPException(503, "No trained classifier. Run: python scripts/evaluate.py --train")
@@ -246,6 +266,26 @@ class Reference(BaseModel):
 
 class LinkRequest(BaseModel):
     texts: List[str] = Field(min_length=2, max_length=8)
+
+
+class InterventionCreate(BaseModel):
+    location_group: str = Field(min_length=1, max_length=40)
+    time_bucket: str = Field(min_length=1, max_length=30)
+    incident_type: str = Field(min_length=1, max_length=40)
+    action: str = Field(min_length=3, max_length=120)
+    action_type: Optional[str] = Field(default="patrol", max_length=30)
+    assigned_unit: Optional[str] = Field(default="anti_ragging_squad", max_length=30)
+    status: Optional[str] = Field(default="active", max_length=20)
+    started_at: Optional[float] = None
+    review_at: Optional[float] = None
+    institutional_note: Optional[str] = Field(default=None, max_length=256)
+
+
+class InterventionUpdate(BaseModel):
+    status: Optional[str] = Field(default=None, max_length=20)
+    review_at: Optional[float] = None
+    action: Optional[str] = Field(default=None, max_length=120)
+    institutional_note: Optional[str] = Field(default=None, max_length=256)
 
 
 # ----------------------------------------------------------------- pages
@@ -398,11 +438,19 @@ def submit(s: Submission):
     clf = _require_clf()
     _flood_check()
     with _db() as con:
+        _record_evt(con, "INPUT_RECEIVED", "pipeline", "ok", None, {"payload_bytes": len(s.text)})
         released = list(_released_fine(con).values())
-        result = _process(s.text, clf, _attacker, released, K, demo_author=_demo_author(s), facts_override=s.facts_override)
+
+        def sink(evt_type, subsystem, status, dur, meta):
+            _record_evt(con, evt_type, subsystem, status, dur, meta)
+
+        result = _process(s.text, clf, _attacker, released, K, demo_author=_demo_author(s),
+                          facts_override=s.facts_override, event_sink=sink)
         del s
         tok = _token()
         card_id, delay = _store(con, result["card"], result, _hash(tok))
+        _record_evt(con, "CARD_STORED", "storage", "ok", None,
+                    {"urgency": result["card"].urgency, "k_satisfied": bool(result["k_satisfied"])})
     _pad_latency(0)
     return {"token": tok, "case": card_id, "release_in_seconds": round(delay),
             "raw_discarded_after_ms": result["raw_discarded_after_ms"], "audit": result["audit"],
@@ -434,10 +482,17 @@ def add_information(token: str, s: Submission):
         parent = con.execute("SELECT id FROM cards WHERE token_hash=? AND parent_id IS NULL", (_hash(token),)).fetchone()
         if not parent:
             raise HTTPException(404, "We don't recognise that passphrase.")
+        _record_evt(con, "INPUT_RECEIVED", "pipeline", "ok", None, {"payload_bytes": len(s.text), "followup": True})
         released = list(_released_fine(con).values())
-        result = _process(s.text, clf, _attacker, released, K, facts_override=s.facts_override)
+
+        def sink(evt_type, subsystem, status, dur, meta):
+            _record_evt(con, evt_type, subsystem, status, dur, meta)
+
+        result = _process(s.text, clf, _attacker, released, K, facts_override=s.facts_override, event_sink=sink)
         del s
         _, delay = _store(con, result["card"], result, _hash(token), parent_id=parent["id"])
+        _record_evt(con, "CARD_STORED", "storage", "ok", None,
+                    {"urgency": result["card"].urgency, "followup": True})
     _pad_latency(0)
     return {"ok": True, "release_in_seconds": round(delay), "raw_discarded_after_ms": result["raw_discarded_after_ms"],
             "card": result["shown"].to_dict()}
@@ -539,6 +594,7 @@ def reply(card_id: int, r: Reply):
         con.execute("INSERT INTO replies(card_id,text,at) VALUES (?,?,?)", (card_id, r.text, time.time()))
         if row["status"] == "received":
             con.execute("UPDATE cards SET status='in_progress' WHERE id=?", (card_id,))
+        _record_evt(con, "MESSAGE_SENT", "committee", "ok", None, {"reply_chars": len(r.text)})
     return {"ok": True}
 
 
@@ -550,6 +606,81 @@ def set_status(card_id: int, s: StatusChange):
         con.execute("UPDATE cards SET status=?, resolved_at=? WHERE id=?",
                     (s.status, time.time() if s.status == "resolved" else None, card_id))
     return {"ok": True}
+
+
+# ----------------------------------------------------------------- privacy health & events
+@app.post("/api/privacy/self-test", dependencies=[Depends(committee)])
+def privacy_self_test():
+    clf = _require_clf()
+    with _db() as con:
+        _record_evt(con, "PRIVACY_TEST_STARTED", "privacy_health", "ok")
+    res = run_self_test(clf, _attacker)
+    with _db() as con:
+        evt_type = "PRIVACY_TEST_COMPLETED" if res["status"] == "pass" else "PRIVACY_TEST_FAILED"
+        _record_evt(con, evt_type, "privacy_health", res["status"], res["total_duration_ms"],
+                    {"passed": res["summary"]["passed"], "failed": res["summary"]["failed"]})
+    return res
+
+
+@app.get("/api/privacy/events", dependencies=[Depends(committee)])
+def privacy_events_get(limit: int = 50, filter: str = "all"):
+    with _db() as con:
+        evts = get_events(con, limit=limit, filter_category=filter)
+    return {"events": evts, "total_returned": len(evts)}
+
+
+# ----------------------------------------------------------------- intervention tracker
+@app.get("/api/interventions", dependencies=[Depends(committee)])
+def interventions_list(status: Optional[str] = None):
+    with _db() as con:
+        items = get_interventions(con, status_filter=status)
+    return {"interventions": items, "count": len(items)}
+
+
+@app.post("/api/interventions", dependencies=[Depends(committee)])
+def interventions_create(req: InterventionCreate):
+    with _db() as con:
+        new_id = create_intervention(
+            con,
+            location_group=req.location_group,
+            time_bucket=req.time_bucket,
+            incident_type=req.incident_type,
+            action=req.action,
+            action_type=req.action_type or "patrol",
+            assigned_unit=req.assigned_unit or "anti_ragging_squad",
+            status=req.status or "active",
+            started_at=req.started_at,
+            review_at=req.review_at,
+            institutional_note=req.institutional_note,
+        )
+        item = get_intervention_by_id(con, new_id)
+    return {"ok": True, "intervention": item}
+
+
+@app.get("/api/interventions/{intervention_id}", dependencies=[Depends(committee)])
+def interventions_detail(intervention_id: int):
+    with _db() as con:
+        item = get_intervention_by_id(con, intervention_id)
+    if not item:
+        raise HTTPException(404, "Intervention not found")
+    return item
+
+
+@app.patch("/api/interventions/{intervention_id}", dependencies=[Depends(committee)])
+def interventions_update(intervention_id: int, req: InterventionUpdate):
+    with _db() as con:
+        ok = update_intervention(
+            con,
+            intervention_id,
+            status=req.status,
+            review_at=req.review_at,
+            action=req.action,
+            institutional_note=req.institutional_note,
+        )
+        if not ok:
+            raise HTTPException(404, "Intervention not found or no fields to update")
+        item = get_intervention_by_id(con, intervention_id)
+    return {"ok": True, "intervention": item}
 
 
 @app.get("/api/report/weekly", dependencies=[Depends(committee)], response_class=HTMLResponse)

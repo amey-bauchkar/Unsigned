@@ -155,7 +155,7 @@ pre code { background:none; padding:0; font-size:inherit; }
         <div class="main">
           <div class="id">Two ideas that separate us from every "we don't store the name" build</div>
           <div class="title">Facts, not fingerprints &nbsp;+&nbsp; Attacker in the loop</div>
-          <p class="sub">The student's story becomes a fact graph, every identifying fact is widened until ≥ k reports share it, and a full account is regenerated from a 176-word lexicon — a runtime invariant refuses any word that is not ours. The strongest stylometry attacker we can build runs on every submission and shows, live, that it now links incidents, not people.</p>
+          <p class="sub">The student's story becomes a fact graph, every identifying fact is widened until ≥ k reports share it, and a full account is regenerated from a 178-word lexicon — a runtime invariant refuses any word that is not ours. The strongest stylometry attacker we can build runs on every submission and shows, live, that it now links incidents, not people.</p>
         </div>
         <div class="signals">
           <div><span class="k">Attacker on raw text</span><div class="v">97%<small>dev seed · chance 17%</small></div></div>
@@ -279,7 +279,7 @@ pre code { background:none; padding:0; font-size:inherit; }
 <li><strong>Fact graph.</strong> The normalised text is decomposed into closed-vocabulary facts: 21 <em>acts</em> (forced standing, money demand, recording, sharing online, threats, unwanted contact, substance coercion…), actor role and count band, place, time bucket, frequency (once / repeated / daily), duration band, money band, digital artefacts, consequences (fear, loss of sleep, injury, missed classes…), whether others were present, whether it is still going on. Numbers are read from the raw text and <strong>banded</strong> (₹1500 → ₹500–2000; 3 ghante → 2–5 hours). Free text never enters a fact.</li>
 <li><strong>The student checks the facts.</strong> The privacy preview shows every fact as a chip with the words that produced it ("from your words: <em>khade</em>, <em>1500 rupees</em>, <em>whatsapp</em>"). The student removes a wrong chip, corrects a band, adds a missed act from the closed list. Edits are validated against the closed sets server-side; no free text is accepted.</li>
 <li><strong>Per-fact k-anonymity.</strong> Each <em>identifier</em> fact — where, when, how much, how long, how many, how often — is widened up its hierarchy until at least k released cards share it, and the student sees the arrow ("₹500–2000 → some money"). <strong>What happened is never suppressed</strong>: a single report of sexual harassment reaches the committee even if it is the only one; a single report naming "room 214 at 2:40 am" cannot.</li>
-<li><strong>Controlled generation.</strong> A fixed grammar turns the fact graph into a full account — <em>"A group of senior students made the reporter stand for two to five hours, demanded money (an unspecified amount) and recorded the reporter on the second floor of Hostel B at night. A messaging group and a video were involved. This has happened more than once. The reporter describes fear and loss of sleep."</em> — using only a 176-word lexicon built from the grammar's own fragments.</li>
+<li><strong>Controlled generation.</strong> A fixed grammar turns the fact graph into a full account — <em>"A group of senior students made the reporter stand for two to five hours, demanded money (an unspecified amount) and recorded the reporter on the second floor of Hostel B at night. A messaging group and a video were involved. This has happened more than once. The reporter describes fear and loss of sleep."</em> — using only a 178-word lexicon built from the grammar's own fragments.</li>
 <li><strong>The invariant.</strong> <code>narrate()</code> tokenises its own output and <strong>raises</strong> if any token is outside the lexicon; the audit re-checks and reports <code>foreign_tokens</code> per card. Same facts → same words, always: variation cannot encode style because there is none.</li>
 </ol>
 <p><strong>What we can now claim, and how each claim is backed:</strong></p>
@@ -448,7 +448,7 @@ pre code { background:none; padding:0; font-size:inherit; }
 <tr>
 <td><strong>F1</strong> Fact extractor + <strong>N2</strong> controlled generator (Section 4A)</td>
 <td>text → fact graph → account</td>
-<td>Cue lexicons + number banding → closed facts; per-fact k-anonymity; grammar over a 176-word lexicon with a runtime invariant</td>
+<td>Cue lexicons + number banding → closed facts; per-fact k-anonymity; grammar over a 178-word lexicon with a runtime invariant</td>
 <td>Corpus spans (for extractor coverage)</td>
 <td>Fact coverage on ragging texts; foreign tokens (must be 0); attacker attribution on accounts vs chance</td>
 <td></td>
@@ -606,7 +606,7 @@ data/dev_seed.csv            team-written examples for smoke tests — never in 
 <tr>
 <td><strong>Style-Free Account engine</strong></td>
 <td>built</td>
-<td>fact graph (21 acts, banded numbers, Hinglish/Marathi cues) · student fact editor with spans and add/remove · per-fact k-anonymity with visible widening · 176-word lexicon grammar with runtime invariant · <code>foreign_tokens</code> in every audit · new evaluation metrics</td>
+<td>fact graph (21 acts, banded numbers, Hinglish/Marathi cues) · student fact editor with spans and add/remove · per-fact k-anonymity with visible widening · 178-word lexicon grammar with runtime invariant · <code>foreign_tokens</code> in every audit · new evaluation metrics</td>
 </tr>
 </tbody>
 </table></div>

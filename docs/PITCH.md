@@ -15,18 +15,18 @@ Present mode (`/present`) drives every slide live directly from the local models
 *(Allow 5–8 seconds of complete silence. Let the judges scan the screen and guess.)*
 
 ### 0:45 — The Attacker Unmasked (Slide 3)
-"Our built-in stylometry model — an attacker using punctuation cadence, emoji habits, vernacular slang, and sentence rhythm — links #1 and #3 with **81% confidence**. The next closest pair is 2%.  
+"Our built-in stylometry model — an attacker using punctuation cadence, emoji habits, vernacular slang, and sentence rhythm — links #1 and #3: on this sample pair, the attacker is 81% confident—and across our entire benchmark corpus, it attributes raw complaints with 97.7% accuracy (AUC 1.00). The next closest pair is 2%.  
 Any warden with a laptop, past assignment submissions, and standard python packages can do this.  
 **Deleting the name is not anonymity.** That is the problem statement’s twist, and it is the entire reason Unsigned exists."
 
 ### 1:30 — Through Unsigned (Slide 4)   ▶ Hand-off
-"Now watch the exact same three complaints pass through Unsigned. The student's text is not stored, paraphrased, or de-stylized. It is converted into a **closed-vocabulary fact graph** — acts, banded numbers, and consequences — and regenerated from our own **176-word lexicon**.  
+"Now watch the exact same three complaints pass through Unsigned. The student's text is not stored, paraphrased, or de-stylized. It is converted into a **closed-vocabulary fact graph** — acts, banded numbers, and consequences — and regenerated from our own **178-word lexicon**.  
 Notice the audit line below each account: **0 of the student's words.**  
 Not stripped. Never copied. Same facts, but in the system's words, never theirs."
 
 ### 2:15 — The Attacker Defeated (Slide 5)
 "Now we run the exact same stylometry attacker on the generated accounts.  
-On the raw text, one pair stood out at 81%. On the generated accounts, attribution collapses below random chance. Its highest guess drops from 81% down to a coin toss, and links by *location*, not *author*.  
+On the raw text, one pair stood out at 81%. On the generated accounts, attribution collapses to 13.6%—below the 16.7% random baseline—dropping linkability to an AUC of 0.46. Its highest guess links by *location*, not *author*.  
 The linguistic identity has been completely destroyed; the actionable facts remain."
 
 ### 2:45 — Live Audience Test (Slide 6)   ▶ Hand-off
@@ -56,7 +56,7 @@ We are Unsigned. We are ready for your questions."
 
 ### Q1: "Is this a mathematical proof of anonymity? Nothing in computer science is truly provable."
 > "We agree completely, and we do not claim absolute mathematical anonymity across all domains. Our claim is scoped and defensible:
-> 1. Release privacy is enforced by construction: raw text is never stored in persistent state, and the account channel is bounded to a closed 176-word lexicon with a runtime invariant check.
+> 1. Release privacy is enforced by construction: raw text is never stored in persistent state, and the account channel is bounded to a closed 178-word lexicon with a runtime invariant check.
 > 2. For the residual stylometric channel, we empirically test against the strongest authorship model we can build, and demonstrate that attribution collapses to random chance."
 
 ### Q2: "Doesn't k-anonymity fail if an incident itself is unique in the college?"

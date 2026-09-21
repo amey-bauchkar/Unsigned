@@ -99,7 +99,7 @@ Raw Text ──[in-memory]──► Structured Facts ──[coarsening]──►
 
 2. **Raw text is never persisted.** It lives in process memory for ~9ms, then is dereferenced with `del text`. It never touches SQLite, logs, HTTP responses, or disk.
 
-3. **Output is regenerated, not sanitized.** The committee reads what happened through a deterministic 176-word lexicon. Same facts → same words, always. Variation cannot leak style because variation does not exist.
+3. **Output is regenerated, not sanitized.** The committee reads what happened through a deterministic 178-word lexicon. Same facts → same words, always. Variation cannot leak style because variation does not exist.
 
 ### The Institutional Intelligence Leap
 
@@ -173,7 +173,7 @@ The committee never needs to unmask "Rahul" or "Priya" to take decisive institut
                               │
               ┌───────────────▼───────────────┐
               │  8. INVARIANT NARRATIVE       │  narrate.py
-              │  176-word bounded lexicon     │  Fixed grammar → deterministic output
+              │  178-word bounded lexicon     │  Fixed grammar → deterministic output
               │  Runtime assertion enforced   │  foreign_tokens == 0 or CRASH (not release)
               └───────────────┬───────────────┘
                               │
@@ -485,7 +485,7 @@ unsigned/
     │   ├── extract.py          # Gazetteer regex span extractor
     │   ├── facts.py            # Closed-vocabulary 22-act Fact Graph engine
     │   ├── rules.py            # Explainable decision rules (false-alert reduction)
-    │   ├── narrate.py          # 176-word lexicon grammar + invariant assertion
+    │   ├── narrate.py          # 178-word lexicon grammar + invariant assertion
     │   ├── card.py             # Card dataclass + channel capacity calculators
     │   └── run.py              # Sanitiser pipeline orchestrator (del text line 91)
     │
@@ -564,7 +564,7 @@ docker run -p 8000:8000 unsigned
 <br>
 We agree completely — which is why we don't claim absolute mathematical anonymity across all domains. Our claim is scoped and defensible:
 <ol>
-<li>Release privacy is enforced by construction: raw text never enters persistent state, and the output channel is bounded to a closed 176-word lexicon with a runtime invariant check.</li>
+<li>Release privacy is enforced by construction: raw text never enters persistent state, and the output channel is bounded to a closed 178-word lexicon with a runtime invariant check.</li>
 <li>For the residual stylometric channel, we test against the strongest authorship model we can build and demonstrate attribution collapses below random chance (AUC 0.46 vs 0.50 baseline).</li>
 </ol>
 </details>
