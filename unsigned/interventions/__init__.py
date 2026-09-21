@@ -9,6 +9,11 @@ from .tracker import (
     ASSIGNED_UNITS,
     STATUSES,
 )
+from .recommend import (
+    recommend_for_pattern,
+    get_recommendations_for_patterns,
+    RECOMMENDATION_RULES,
+)
 
 __all__ = [
     "init_interventions_table",
@@ -20,4 +25,7 @@ __all__ = [
     "ACTION_TYPES",
     "ASSIGNED_UNITS",
     "STATUSES",
+    "recommend_for_pattern",
+    "get_recommendations_for_patterns",
+    "RECOMMENDATION_RULES",
 ]

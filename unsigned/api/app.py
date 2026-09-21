@@ -44,12 +44,13 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from ..interventions.tracker import (
+from ..interventions import (
     init_interventions_table,
     create_intervention,
     get_interventions,
     get_intervention_by_id,
     update_intervention,
+    get_recommendations_for_patterns,
 )
 from ..patterns.detect import detect
 from ..pipeline.card import Card, channel_capacity_bits
@@ -58,7 +59,6 @@ from ..pipeline.run import display as _display, preview as _preview, process as 
 from ..pipeline.narrate import LEXICON, narrative_capacity_bits
 from ..privacy.attacker import StyleAttacker
 from ..privacy.events import record_event as _record_evt, get_events
-from ..privacy.health import run_self_test
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(os.path.dirname(HERE), "web")
@@ -608,20 +608,7 @@ def set_status(card_id: int, s: StatusChange):
     return {"ok": True}
 
 
-# ----------------------------------------------------------------- privacy health & events
-@app.post("/api/privacy/self-test", dependencies=[Depends(committee)])
-def privacy_self_test():
-    clf = _require_clf()
-    with _db() as con:
-        _record_evt(con, "PRIVACY_TEST_STARTED", "privacy_health", "ok")
-    res = run_self_test(clf, _attacker)
-    with _db() as con:
-        evt_type = "PRIVACY_TEST_COMPLETED" if res["status"] == "pass" else "PRIVACY_TEST_FAILED"
-        _record_evt(con, evt_type, "privacy_health", res["status"], res["total_duration_ms"],
-                    {"passed": res["summary"]["passed"], "failed": res["summary"]["failed"]})
-    return res
-
-
+# ----------------------------------------------------------------- privacy events
 @app.get("/api/privacy/events", dependencies=[Depends(committee)])
 def privacy_events_get(limit: int = 50, filter: str = "all"):
     with _db() as con:
@@ -630,6 +617,25 @@ def privacy_events_get(limit: int = 50, filter: str = "all"):
 
 
 # ----------------------------------------------------------------- intervention tracker
+@app.get("/api/interventions/recommendations", dependencies=[Depends(committee)])
+def interventions_recommendations():
+    with _db() as con:
+        rows = con.execute("SELECT card_json, week FROM cards WHERE released=1").fetchall()
+        active_invs = get_interventions(con, status_filter="active")
+    cs = []
+    for r in rows:
+        try:
+            d = json.loads(r["card_json"])
+            d["week"] = r["week"]
+            cs.append(d)
+        except Exception:
+            continue
+    week = int(time.time() // (7 * 86400))
+    alerts = detect(cs, week)
+    recs = get_recommendations_for_patterns(alerts, active_invs)
+    return {"recommendations": recs}
+
+
 @app.get("/api/interventions", dependencies=[Depends(committee)])
 def interventions_list(status: Optional[str] = None):
     with _db() as con:

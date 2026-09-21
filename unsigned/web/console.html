@@ -756,70 +756,77 @@
     .bar { grid-template-columns:1fr; }
   }
 
-  /* Privacy Health & Self-Test */
-  .health-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 14px;
+  /* Recommended Interventions */
+  .recommended-section {
+    margin-bottom: 1.6rem;
     padding: 1.25rem 1.4rem;
-    margin-bottom: 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 14px;
     box-shadow: var(--shadow-sm);
   }
-  .health-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: .8rem;
-  }
-  .health-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    padding: .35rem .85rem;
-    border-radius: 999px;
-    font: 700 .82rem var(--ui);
-  }
-  .health-badge.pass { background: var(--ok-wash); color: var(--ok); border: 1px solid var(--ok); }
-  .health-badge.fail { background: var(--bad-wash); color: var(--bad); border: 1px solid var(--bad); }
-  .health-badge.running { background: var(--warn-wash); color: var(--warn); border: 1px solid var(--warn); }
-  .health-grid {
+  .recommended-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: .75rem;
-    margin-top: .9rem;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1rem;
+    margin-top: .85rem;
   }
-  @media (max-width: 900px) { .health-grid { grid-template-columns: 1fr; } }
-  .health-item {
+  .recommendation-card {
     background: var(--surface-2);
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    padding: .85rem 1rem;
+    border: 1px solid rgba(31,111,120,0.25);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.15rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: .3rem;
+    gap: .6rem;
+    box-shadow: var(--shadow-sm);
   }
-  .health-item-head {
+  .rec-head {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: flex-start;
     gap: .5rem;
+    flex-wrap: wrap;
   }
-  .health-item-title {
-    font: 700 .88rem var(--ui);
+  .rec-pattern-badge {
+    font: 700 .9rem var(--ui);
     color: var(--ink);
+  }
+  .rec-surge-badge {
+    font: 600 .75rem var(--mono);
+    color: var(--accent);
+    background: var(--accent-wash);
+    padding: .2em .55em;
+    border-radius: 6px;
+  }
+  .rec-action {
+    font: 600 1rem/1.35 var(--serif);
+    color: var(--ink);
+  }
+  .rec-meta {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: .4rem;
+    align-items: center;
+    font-size: .78rem;
   }
-  .health-item-desc {
-    font: 400 .8rem/1.4 var(--ui);
+  .rec-reason {
+    font: 400 .84rem/1.45 var(--ui);
     color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: .5rem .75rem;
+    margin: 0;
   }
-  .health-item-dur {
-    font: 600 .72rem var(--mono);
-    color: var(--muted);
+  .rec-actions {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    margin-top: auto;
+    padding-top: .5rem;
+    border-top: 1px dashed var(--rule);
   }
 
   /* Intervention Tracker */
@@ -1205,6 +1212,21 @@
         <div class="tile"><span class="lab">Evaluation window</span><span class="big" style="font-size:1.85rem">Matched</span><span class="delta">min(7d, elapsed) before vs after</span></div>
       </div>
 
+      <!-- Recommended Interventions (Strictly hidden when no recommendations match) -->
+      <div id="recommendedSection" class="recommended-section hidden">
+        <div class="blockhead">
+          <div>
+            <h2 style="display:flex;align-items:center;gap:.6rem">
+              <span>⚡ Recommended Institutional Interventions</span>
+              <span class="pill ok" id="recCountBadge" style="font-size:.75rem">Pattern Match</span>
+            </h2>
+            <p class="muted" style="margin:.2rem 0 0;font:400 .9rem var(--ui)">Rule-based actions triggered by statistically significant rising incident patterns. Committee can accept to deploy immediately, modify specifics, or dismiss.</p>
+            <p style="margin:.35rem 0 0;font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:.35rem"><span>🛡️</span> <em>The recommendation engine never receives raw complaint text and operates only on privacy-safe aggregate pattern data.</em></p>
+          </div>
+        </div>
+        <div class="recommended-grid" id="recommendedGrid"></div>
+      </div>
+
       <div class="chips">
         <button data-invf="active" class="on">Active</button>
         <button data-invf="completed">Completed</button>
@@ -1225,56 +1247,6 @@
       </div>
       <div id="seedWarn" class="warnbox hidden">
         <b>Dev Seed Notice:</b> These numbers come from the team-written dev seed (smoke test dataset). They are replaced by the calibrated benchmark corpus before presentations.
-      </div>
-
-      <!-- Privacy Health / Self-Test -->
-      <div class="health-card" id="healthCard">
-        <div class="health-top">
-          <div>
-            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
-              <h2 style="font:600 1.25rem/1.2 var(--serif);color:var(--ink)">Privacy Health &amp; Self-Test</h2>
-              <span class="health-badge pass" id="healthBadge">● 6 / 6 Checks Passing</span>
-            </div>
-            <p class="muted" style="margin:.25rem 0 0;font:400 .9rem var(--ui)" id="healthSubtitle">Live executable verification against an isolated testbed. Exercises the real pipeline, plants canaries, and verifies zero raw text or student tokens escape.</p>
-          </div>
-          <button class="small primary" id="runSelfTestBtn" style="white-space:nowrap">Run Self-Test</button>
-        </div>
-        <div class="health-grid" id="healthGrid">
-          <div class="health-item">
-            <div class="health-item-head"><span class="health-item-title"><span>🛡️</span> Raw-text persistence</span><span class="pill ok">PASS</span></div>
-            <div class="health-item-desc">Planted synthetic canary processed through full pipeline + storage path; verified 0 occurrences across all SQLite columns.</div>
-            <div class="health-item-dur">duration: 32 ms · 0 raw tokens stored</div>
-          </div>
-          <div class="health-item">
-            <div class="health-item-head"><span class="health-item-title"><span>📝</span> Student-word release</span><span class="pill ok">PASS</span></div>
-            <div class="health-item-desc">Planted unique non-lexicon tokens; verified 0 student words released in generated narrative.</div>
-            <div class="health-item-dur">duration: 10 ms · 0 student words copied</div>
-          </div>
-          <div class="health-item">
-            <div class="health-item-head"><span class="health-item-title"><span>📖</span> Closed vocabulary</span><span class="pill ok">PASS</span></div>
-            <div class="health-item-desc">Validated generated accounts against active runtime lexicon (178 words); 0 foreign tokens across test phrasings.</div>
-            <div class="health-item-dur">duration: 35 ms · lexicon strictly bounded</div>
-          </div>
-          <div class="health-item">
-            <div class="health-item-head"><span class="health-item-title"><span>⚡</span> Canary isolation</span><span class="pill ok">PASS</span></div>
-            <div class="health-item-desc">Executed 50 adversarial fuzzed inputs (script injection, SQL, mixed scripts, phone numbers); 0 canaries leaked.</div>
-            <div class="health-item-dur">duration: 250 ms · 50 adversarial inputs blocked</div>
-          </div>
-          <div class="health-item">
-            <div class="health-item-head"><span class="health-item-title"><span>🔒</span> Sensitive logging</span><span class="pill ok">PASS</span></div>
-            <div class="health-item-desc">Access logging disabled (no client IP logging); event sanitizer automatically purges sensitive keys.</div>
-            <div class="health-item-dur">duration: 0 ms · zero IP or token retention</div>
-          </div>
-          <div class="health-item">
-            <div class="health-item-head"><span class="health-item-title"><span>🌐</span> External API / backend dependency</span><span class="pill ok">PASS</span></div>
-            <div class="health-item-desc">100% local CPU backend verified: zero external cloud API keys, zero remote database connections, zero external API dependencies.</div>
-            <div class="health-item-dur">duration: 0 ms · fully air-gapped CPU inference</div>
-          </div>
-        </div>
-        <div style="margin-top:.85rem;padding-top:.6rem;border-top:1px dashed var(--rule);display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--muted);flex-wrap:wrap;gap:.5rem">
-          <span id="healthLastRun">Last verified: live check</span>
-          <span id="healthDuration" style="font-family:var(--mono)">0 canary leaks · isolated testbed</span>
-        </div>
       </div>
 
       <div class="card" style="margin-bottom:1.1rem">
@@ -1687,56 +1659,6 @@ async function renderProof() {
 }
 $("#tryBtn").onclick = async () => { const A = $("#tA").value.trim(), B = $("#tB").value.trim(); if (A.length < 5 || B.length < 5) return; const r = await j("/api/attacker/link", { method:"POST", body: JSON.stringify({ texts:[A,B] }) }); const p = r.pairs[0].same_author; $("#tryOut").innerHTML = `same-author score <b style="color:${p>0.5?"var(--bad)":"var(--ok)"}">${pct(p)}</b>`; };
 
-/* ---------- privacy health & self-test ---------- */
-const testIcons = {
-  raw_persistence: "🛡️",
-  student_word_release: "📝",
-  closed_vocabulary: "📖",
-  canary_isolation: "⚡",
-  logging_safety: "🔒",
-  external_network_isolation: "🌐"
-};
-
-async function runSelfTest(userInitiated = true) {
-  const badge = $("#healthBadge");
-  const btn = $("#runSelfTestBtn");
-  if (!badge || !btn) return;
-  badge.className = "health-badge running";
-  badge.textContent = "● Running 6 verification tests...";
-  btn.disabled = true;
-  try {
-    const res = await j("/api/privacy/self-test", { method: "POST", body: "{}" });
-    const isPass = res.status === "pass";
-    badge.className = `health-badge ${isPass ? "pass" : "fail"}`;
-    badge.textContent = isPass ? `● ${res.summary.passed} / ${res.summary.total} Checks Passing` : `▲ ${res.summary.failed} Failed`;
-    $("#healthGrid").innerHTML = (res.tests || []).map(t => {
-      const ico = testIcons[t.id] || "✓";
-      const isOk = t.status === "pass";
-      return `<div class="health-item">
-        <div class="health-item-head">
-          <span class="health-item-title"><span>${ico}</span> ${esc(t.name)}</span>
-          <span class="pill ${isOk ? 'ok' : 'bad'}">${isOk ? 'PASS' : 'FAIL'}</span>
-        </div>
-        <div class="health-item-desc">${esc(t.details)}</div>
-        <div class="health-item-dur">duration: ${t.duration_ms} ms · ${isOk ? 'verified' : 'failed check'}</div>
-      </div>`;
-    }).join("");
-    $("#healthLastRun").textContent = `Last verified: ${res.formatted_date || ''} ${res.formatted_time || ''}`;
-    $("#healthDuration").textContent = `Total run: ${res.total_duration_ms} ms · isolated SQLite testbed (zero canary leaks)`;
-    if (userInitiated) {
-      toast(isPass ? "Privacy self-test: 6/6 checks passed" : "Privacy self-test: issues detected");
-      renderPrivacyEvents(currentEvtFilter);
-    }
-  } catch(e) {
-    badge.className = "health-badge fail";
-    badge.textContent = "▲ Self-test error";
-    console.error("Self-test error:", e);
-  } finally {
-    btn.disabled = false;
-  }
-}
-if ($("#runSelfTestBtn")) $("#runSelfTestBtn").onclick = () => runSelfTest(true);
-
 /* ---------- interventions ---------- */
 function openInterventionModal(loc, timeBucket, type) {
   if (loc) $("#invLocation").value = loc;
@@ -1882,9 +1804,97 @@ async function renderInterventions() {
         ? tabList.map(renderInterventionCard).join("")
         : `<div class="card empty-card" style="grid-column:1/-1"><p class="muted" style="margin:0;font:400 1rem/1.4 var(--serif)">No ${currentInvFilter === "all" ? "" : currentInvFilter} interventions found. Click <b>+ Record Intervention</b> to create one.</p></div>`;
     }
+
+    // Render rule-based recommendations
+    await renderRecommendations();
   } catch(e) {
     console.error("Failed to render interventions:", e);
   }
+}
+
+/* ---------- recommended interventions ---------- */
+const dismissedRecIds = new Set();
+let cachedRecs = [];
+
+async function renderRecommendations() {
+  const sec = $("#recommendedSection");
+  const grid = $("#recommendedGrid");
+  if (!sec || !grid) return;
+  try {
+    const data = await j("/api/interventions/recommendations");
+    const recs = (data.recommendations || []).filter(r => r && !dismissedRecIds.has(r.id));
+    cachedRecs = recs;
+    if (!recs.length) {
+      sec.classList.add("hidden");
+      grid.innerHTML = "";
+      return;
+    }
+    sec.classList.remove("hidden");
+    if ($("#recCountBadge")) $("#recCountBadge").textContent = `${recs.length} Active ${recs.length === 1 ? "Pattern" : "Patterns"} Matched`;
+    grid.innerHTML = recs.map((rec, i) => {
+      const sp = rec.source_pattern || {};
+      return `<div class="recommendation-card" data-rec-idx="${i}">
+        <div class="rec-head">
+          <span class="rec-pattern-badge">📍 ${pretty(sp.location)} · ${pretty(sp.time_bucket)} · ${pretty(sp.type)}</span>
+          <span class="rec-surge-badge">${sp.cards_this_week || 0} reports this week (vs ~${sp.baseline_per_week || 0}/wk)</span>
+        </div>
+        <div class="rec-action">⚡ ${esc(rec.recommendation)}</div>
+        <div class="rec-meta">
+          <span class="pill quiet">${pretty(rec.action_type)}</span>
+          <span class="pill quiet">${pretty(rec.assigned_unit)}</span>
+        </div>
+        <p class="rec-reason"><b>Actionable Reason:</b> ${esc(rec.reason)}</p>
+        <div class="rec-actions">
+          <button class="small primary" onclick="acceptRecommendation(${i})">✓ Accept Intervention</button>
+          <button class="small ghost" onclick="modifyRecommendation(${i})">✎ Modify</button>
+          <button class="small ghost" style="margin-left:auto;color:var(--muted)" onclick="dismissRecommendation('${esc(rec.id)}')">✕ Dismiss</button>
+        </div>
+      </div>`;
+    }).join("");
+  } catch (e) {
+    console.error("Failed to render recommendations:", e);
+    sec.classList.add("hidden");
+  }
+}
+
+async function acceptRecommendation(idx) {
+  const rec = cachedRecs[idx];
+  if (!rec) return;
+  const sp = rec.source_pattern || {};
+  try {
+    await j("/api/interventions", {
+      method: "POST",
+      body: JSON.stringify({
+        location_group: sp.location,
+        time_bucket: sp.time_bucket,
+        incident_type: sp.type,
+        action: rec.recommendation,
+        action_type: rec.action_type,
+        assigned_unit: rec.assigned_unit,
+        status: "active",
+        started_at: Math.floor(Date.now() / 1000)
+      })
+    });
+    toast("Recommendation accepted and deployed");
+    await renderInterventions();
+  } catch (e) {
+    alert("Error accepting recommendation: " + e.message);
+  }
+}
+
+function modifyRecommendation(idx) {
+  const rec = cachedRecs[idx];
+  if (!rec) return;
+  const sp = rec.source_pattern || {};
+  openInterventionModal(sp.location, sp.time_bucket, sp.type);
+  if ($("#invAction")) $("#invAction").value = rec.recommendation;
+  if ($("#invActionType")) $("#invActionType").value = rec.action_type;
+  if ($("#invUnit")) $("#invUnit").value = rec.assigned_unit;
+}
+
+function dismissRecommendation(recId) {
+  dismissedRecIds.add(recId);
+  renderRecommendations();
 }
 
 /* ---------- privacy event log ---------- */

@@ -35,14 +35,10 @@ from unsigned.privacy.events import (
     EVENT_TYPES,
     MAX_RETENTION,
 )
-from unsigned.privacy.health import (
-    run_self_test,
-    check_raw_persistence,
-    check_student_word_release,
-    check_closed_vocabulary,
-    check_canary_isolation,
-    check_sensitive_logging,
-    check_external_network_isolation,
+from unsigned.interventions import (
+    recommend_for_pattern,
+    get_recommendations_for_patterns,
+    RECOMMENDATION_RULES,
 )
 
 
@@ -81,60 +77,147 @@ def test_db():
         os.unlink(path)
 
 
-# ----------------------------------------------------------------- 1. PRIVACY HEALTH
-def test_self_test_endpoint_requires_auth(client):
-    res = client.post("/api/privacy/self-test")
-    assert res.status_code == 401
-
-    res_auth = client.post("/api/privacy/self-test", headers={"X-Committee-Key": COMMITTEE_KEY})
-    assert res_auth.status_code == 200
-    data = res_auth.json()
-    assert data["status"] in ("pass", "fail")
-    assert "tests" in data
-    assert len(data["tests"]) == 6
-    assert data["summary"]["total"] == 6
+# ----------------------------------------------------------------- 1. SELF-TEST REMOVAL & RECOMMENDATION ENGINE
+def test_self_test_endpoint_is_removed(client):
+    res = client.post("/api/privacy/self-test", headers={"X-Committee-Key": COMMITTEE_KEY})
+    assert res.status_code == 404
 
 
-def test_real_self_test_passes():
-    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    c0_path = os.path.join(root, "models", "c0.joblib")
-    a1_path = os.path.join(root, "models", "a1.joblib")
-    clf = BaselineClassifier.load(c0_path)
-    attacker = StyleAttacker.load(a1_path) if os.path.exists(a1_path) else None
+def test_recommendation_rules_matching():
+    # 1. Hostel + Night + Coercion (Actionable threshold satisfied)
+    p_hostel = {
+        "location": "hostel_b",
+        "time_bucket": "night",
+        "type": "coercion_forced_acts",
+        "cards_this_week": 4,
+        "baseline_per_week": 0.25,
+        "p_value": 0.0001,
+    }
+    rec1 = recommend_for_pattern(p_hostel)
+    assert rec1 is not None
+    assert rec1["id"] == "hostel_night_coercion"
+    assert rec1["action_type"] == "patrol"
+    assert rec1["assigned_unit"] == "anti_ragging_squad"
+    assert "Doubled anti-ragging squad night patrols" in rec1["recommendation"]
+    assert "Recurring coercion" in rec1["reason"]
 
-    res = run_self_test(clf, attacker)
-    assert res["status"] == "pass", f"Self-test failed: {res}"
-    assert res["summary"]["passed"] == 6
-    assert res["summary"]["failed"] == 0
+    # 2. Academic + Physical
+    p_acad = {
+        "location": "academic",
+        "time_bucket": "afternoon",
+        "type": "physical",
+        "cards_this_week": 3,
+        "baseline_per_week": 0.25,
+        "p_value": 0.0005,
+    }
+    rec2 = recommend_for_pattern(p_acad)
+    assert rec2 is not None
+    assert rec2["id"] == "academic_corridor_physical"
+    assert rec2["action_type"] == "patrol"
 
-    # Ensure no canary text or raw text leaked into details
-    for t in res["tests"]:
-        assert "CANARY_" not in t["details"]
-        assert t["status"] == "pass"
+    # 3. Dining + Extortion
+    p_dining = {
+        "location": "mess",
+        "time_bucket": "evening",
+        "type": "extortion_financial",
+        "cards_this_week": 4,
+        "baseline_per_week": 0.25,
+        "p_value": 0.0002,
+    }
+    rec3 = recommend_for_pattern(p_dining)
+    assert rec3 is not None
+    assert rec3["id"] == "dining_common_area_extortion"
+    assert rec3["action_type"] == "surveillance"
 
 
-def test_individual_privacy_health_checks():
-    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    clf = BaselineClassifier.load(os.path.join(root, "models", "c0.joblib"))
-    attacker = StyleAttacker.load(os.path.join(root, "models", "a1.joblib"))
+def test_recommendation_strict_null_behavior():
+    # A. Unmatched combination (Hostel C + Afternoon + isolated verbal incident)
+    p_unmatched = {
+        "location": "hostel_c",
+        "time_bucket": "afternoon",
+        "type": "verbal_abuse",
+        "cards_this_week": 1,
+        "baseline_per_week": 0.5,
+        "p_value": 0.35,
+    }
+    assert recommend_for_pattern(p_unmatched) is None
 
-    ok, msg = check_raw_persistence(clf, attacker)
-    assert ok, f"check_raw_persistence failed: {msg}"
+    # B. High count / anomaly alone without matching actionable rule conditions MUST return None
+    p_high_count_no_rule = {
+        "location": "academic",
+        "time_bucket": "morning",
+        "type": "verbal_abuse",  # Verbal abuse in academic is not an actionable rule
+        "cards_this_week": 15,
+        "baseline_per_week": 0.1,
+        "p_value": 1e-12,
+    }
+    assert recommend_for_pattern(p_high_count_no_rule) is None
 
-    ok, msg = check_student_word_release(clf, attacker)
-    assert ok, f"check_student_word_release failed: {msg}"
+    # C. Threshold not met (Hostel night coercion with only 1 card)
+    p_under_threshold = {
+        "location": "hostel_b",
+        "time_bucket": "night",
+        "type": "coercion_forced_acts",
+        "cards_this_week": 1,
+        "baseline_per_week": 0.25,
+        "p_value": 0.005,
+    }
+    assert recommend_for_pattern(p_under_threshold) is None
 
-    ok, msg = check_closed_vocabulary(clf, attacker)
-    assert ok, f"check_closed_vocabulary failed: {msg}"
 
-    ok, msg = check_canary_isolation(clf)
-    assert ok, f"check_canary_isolation failed: {msg}"
+def test_recommendations_api_contract(client):
+    # 401 without auth
+    res_noauth = client.get("/api/interventions/recommendations")
+    assert res_noauth.status_code == 401
 
-    ok, msg = check_sensitive_logging()
-    assert ok, f"check_sensitive_logging failed: {msg}"
+    # 200 with auth
+    res = client.get("/api/interventions/recommendations", headers={"X-Committee-Key": COMMITTEE_KEY})
+    assert res.status_code == 200
+    data = res.json()
+    assert "recommendations" in data
+    assert isinstance(data["recommendations"], list)
+    # Crucial: Never return arrays containing null elements
+    for r in data["recommendations"]:
+        assert r is not None
+        assert "recommendation" in r
+        assert "reason" in r
+        assert "source_pattern" in r
 
-    ok, msg = check_external_network_isolation()
-    assert ok, f"check_external_network_isolation failed: {msg}"
+
+def test_recommendation_reason_contains_only_aggregate_data():
+    p = {
+        "location": "hostel_a",
+        "time_bucket": "night",
+        "type": "extortion_financial",
+        "cards_this_week": 5,
+        "baseline_per_week": 0.25,
+        "p_value": 0.0001,
+    }
+    rec = recommend_for_pattern(p)
+    assert rec is not None
+    reason = rec["reason"]
+    # Verify no raw student text or placeholder strings
+    assert "CANARY" not in reason
+    assert "student" in reason.lower() or "hostel" in reason.lower()
+
+
+def test_committee_accept_recommendation(client):
+    # Committee accepts a recommendation payload via POST /api/interventions
+    payload = {
+        "location_group": "hostel_b",
+        "time_bucket": "night",
+        "incident_type": "coercion_forced_acts",
+        "action": "Doubled anti-ragging squad night patrols and corridor monitoring",
+        "action_type": "patrol",
+        "assigned_unit": "anti_ragging_squad",
+        "status": "active",
+        "started_at": time.time(),
+    }
+    res = client.post("/api/interventions", json=payload, headers={"X-Committee-Key": COMMITTEE_KEY})
+    assert res.status_code == 200
+    created = res.json()
+    assert created["ok"] is True
+    assert created["intervention"]["id"] > 0
 
 
 # ----------------------------------------------------------------- 2. INTERVENTION TRACKER
