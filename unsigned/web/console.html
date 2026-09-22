@@ -579,6 +579,43 @@
     border-bottom:1px solid var(--rule-strong);
     text-transform:uppercase;
   }
+  table.cases th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s, color .15s, box-shadow .15s;
+    white-space: nowrap;
+  }
+  table.cases th.sortable:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+  table.cases th.sortable:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .sort-icon {
+    display: inline-block;
+    margin-left: .35rem;
+    font-size: .75rem;
+    vertical-align: middle;
+    opacity: .35;
+    transition: opacity .15s, color .15s, transform .15s;
+  }
+  table.cases th.sortable:hover .sort-icon {
+    opacity: .75;
+  }
+  table.cases th.sortable.sorted-asc .sort-icon,
+  table.cases th.sortable.sorted-desc .sort-icon {
+    opacity: 1;
+    color: var(--accent);
+    font-weight: 800;
+  }
+  table.cases th.sortable.sorted-asc,
+  table.cases th.sortable.sorted-desc {
+    color: var(--ink);
+    background: var(--surface);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
   table.cases td {
     padding:.9rem 1rem;
     border-bottom:1px solid var(--rule);
@@ -1218,14 +1255,14 @@
         <table class="cases" aria-label="Released cases">
           <thead>
             <tr>
-              <th>Urgency</th>
-              <th>Distress</th>
-              <th>What happened</th>
-              <th>Where</th>
-              <th>When</th>
-              <th>Day</th>
-              <th>Status</th>
-              <th></th>
+              <th class="sortable" data-col="urgency" data-label="Urgency" role="button" tabindex="0" title="Sort by Urgency">Urgency <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th class="sortable" data-col="distress" data-label="Distress" role="button" tabindex="0" title="Sort by Distress">Distress <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th class="sortable" data-col="what" data-label="What happened" role="button" tabindex="0" title="Sort by What happened">What happened <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th class="sortable" data-col="where" data-label="Where" role="button" tabindex="0" title="Sort by Where">Where <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th class="sortable" data-col="when" data-label="When" role="button" tabindex="0" title="Sort by When">When <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th class="sortable" data-col="day" data-label="Day" role="button" tabindex="0" title="Sort by Day">Day <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th class="sortable" data-col="status" data-label="Status" role="button" tabindex="0" title="Sort by Status">Status <span class="sort-icon" aria-hidden="true">↕</span></th>
+              <th aria-hidden="true"></th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -1515,7 +1552,7 @@ const fmtTs = ts => {
   return `${dd}/${mm}/${yyyy} ${time}`;
 };
 const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); };
-let cardsData = null, overviewData = null, filter = "needs", placeFilter = "", timeFilter = "", selected = null;
+let cardsData = null, overviewData = null, filter = "needs", placeFilter = "", timeFilter = "", selected = null, sortCol = null, sortDir = "asc";
 
 /* ---------- auth ---------- */
 function logout() { KEY = ""; sessionStorage.removeItem("unsigned_key"); $("#shell").classList.add("hidden"); $("#login").classList.remove("hidden"); }
@@ -1585,6 +1622,78 @@ $("#alertsRight").onclick = () => { $("#alerts").scrollBy({ left: 380, behavior:
 /* ---------- cases ---------- */
 document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filter = b.dataset.f; placeFilter = ""; timeFilter = ""; renderCases(); });
 $("#q").addEventListener("input", () => { placeFilter = ""; timeFilter = ""; renderCases(); });
+
+const URG_ORDER = { immediate: 3, soon: 2, routine: 1 };
+const DIST_ORDER = { high: 3, medium: 2, low: 1, none: 0 };
+const WHEN_ORDER = { morning: 1, afternoon: 2, evening: 3, night: 4, night_or_evening: 5, unknown: 6 };
+const STATUS_ORDER = { received: 1, in_progress: 2, resolved: 3 };
+
+function sortCards(cards) {
+  if (!sortCol) return cards;
+  return [...cards].sort((a, b) => {
+    let diff = 0;
+    if (sortCol === "urgency") {
+      diff = (URG_ORDER[a.urgency] || 0) - (URG_ORDER[b.urgency] || 0);
+    } else if (sortCol === "distress") {
+      diff = (DIST_ORDER[a.distress] || 0) - (DIST_ORDER[b.distress] || 0);
+    } else if (sortCol === "what") {
+      const sA = (pretty(a.types) + " " + pretty(a.behaviours)).toLowerCase();
+      const sB = (pretty(b.types) + " " + pretty(b.behaviours)).toLowerCase();
+      diff = sA.localeCompare(sB);
+    } else if (sortCol === "where") {
+      const sA = pretty(a.location).toLowerCase();
+      const sB = pretty(b.location).toLowerCase();
+      diff = sA.localeCompare(sB);
+    } else if (sortCol === "when") {
+      const vA = WHEN_ORDER[a.time_bucket] || 99;
+      const vB = WHEN_ORDER[b.time_bucket] || 99;
+      diff = vA !== vB ? vA - vB : pretty(a.time_bucket).localeCompare(pretty(b.time_bucket));
+    } else if (sortCol === "day") {
+      diff = String(a.day || "").localeCompare(String(b.day || ""));
+    } else if (sortCol === "status") {
+      diff = (STATUS_ORDER[a.status] || 99) - (STATUS_ORDER[b.status] || 99);
+    }
+    if (diff === 0) diff = b.id - a.id;
+    return sortDir === "asc" ? diff : -diff;
+  });
+}
+
+function updateSortHeaders() {
+  document.querySelectorAll("table.cases th.sortable").forEach(th => {
+    const col = th.dataset.col;
+    const isCurrent = col === sortCol;
+    th.classList.toggle("sorted-asc", isCurrent && sortDir === "asc");
+    th.classList.toggle("sorted-desc", isCurrent && sortDir === "desc");
+    th.setAttribute("aria-sort", isCurrent ? (sortDir === "asc" ? "ascending" : "descending") : "none");
+    const nextDir = isCurrent ? (sortDir === "asc" ? "descending" : "ascending") : (col === "day" || col === "urgency" || col === "distress" ? "descending" : "ascending");
+    th.title = `Sort by ${th.dataset.label || col} (${isCurrent ? (sortDir === "asc" ? "ascending" : "descending") : "unsorted"} — click for ${nextDir})`;
+    const icon = th.querySelector(".sort-icon");
+    if (icon) {
+      icon.textContent = isCurrent ? (sortDir === "asc" ? "▲" : "▼") : "↕";
+    }
+  });
+}
+
+function setSort(col) {
+  if (sortCol === col) {
+    sortDir = sortDir === "asc" ? "desc" : "asc";
+  } else {
+    sortCol = col;
+    sortDir = (col === "day" || col === "urgency" || col === "distress") ? "desc" : "asc";
+  }
+  updateSortHeaders();
+  renderCases();
+}
+
+document.querySelectorAll("table.cases th.sortable").forEach(th => {
+  th.onclick = () => setSort(th.dataset.col);
+  th.onkeydown = e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setSort(th.dataset.col);
+    }
+  };
+});
 function visible(d) {
   if (d.parent_id) return false;
   if (filter === "needs" && d.status !== "received") return false;
@@ -1622,7 +1731,9 @@ async function renderCases() {
   cardsData = cardsData || await j("/api/cards"); const c = cardsData;
   document.querySelectorAll(".chips button").forEach(b => b.classList.toggle("on", b.dataset.f === filter));
   $("#needCnt").textContent = c.cards.filter(d => !d.parent_id && d.status === "received").length || "";
-  const list = c.cards.filter(visible);
+  const filtered = c.cards.filter(visible);
+  const list = sortCards(filtered);
+  updateSortHeaders();
   $("#casesLab").textContent = `${list.length} shown · ${c.pending_release} awaiting release · ${c.below_k} at coarsest level`;
   $("#rows").innerHTML = list.map(d => `<tr data-id="${d.id}" class="${selected===d.id?"sel":""}"><td><span class="pill ${d.urgency}">${d.urgency}</span></td><td><span class="pill ${d.distress}">${d.distress}</span></td><td class="what">${pretty(d.types)}${d.behaviours.length?` <span class="muted">· ${pretty(d.behaviours)}</span>`:""}</td><td>${d.location_group && d.location_group !== d.location ? `${pretty(d.location_group)} <span class="muted">(${pretty(d.location)})</span>` : pretty(d.location)}</td><td>${pretty(d.time_bucket)}</td><td class="muted">${fmtDate(d.day)}</td><td><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></td><td class="muted">${c.cards.filter(x=>x.parent_id===d.id).length?"＋":""}${d.n_replies?" ✉":""}</td></tr>`).join("")
     || `<tr><td colspan="8" class="muted" style="padding:2rem;text-align:center">Nothing here. ${filter==="needs"?"No cards are waiting to be opened.":""}</td></tr>`;
