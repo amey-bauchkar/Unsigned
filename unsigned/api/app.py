@@ -348,8 +348,8 @@ def overview():
         loc = _group_of(raw_card.get("location", "unknown"))
         raw_tb = raw_card.get("time_bucket", "unknown")
         tb = raw_tb if raw_tb in COL_BUCKETS else "unknown"
-        grid[loc][tb] += 1
         if r["status"] != "resolved":
+            grid[loc][tb] += 1
             open_cards += 1
             if r["urgency"] == "immediate":
                 immediate += 1
