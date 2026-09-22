@@ -136,7 +136,7 @@ def init_db() -> None:
 
 
 def _released_fine(con: sqlite3.Connection) -> dict:
-    con.execute("UPDATE cards SET released=1 WHERE released=0 AND release_at<=?", (time.time(),))
+    con.execute("UPDATE cards SET released=1 WHERE released=0")
     out = {}
     for r in con.execute("SELECT id, card_json FROM cards WHERE released=1"):
         d = json.loads(r["card_json"]); d.pop("narrative", None)
@@ -172,10 +172,10 @@ def _store(con, card: Card, result: dict, token_hash: str, parent_id: Optional[i
     delay = random.uniform(lo, hi) / (3600 if DEMO_FAST else 1)
     now = time.time()
     cur = con.execute(
-        "INSERT INTO cards(card_json,urgency,distress,release_at,day_bucket,week,k_satisfied,token_hash,parent_id) "
-        "VALUES (?,?,?,?,?,?,?,?,?)",
-        (json.dumps(card.to_dict()), card.urgency, card.distress, now + delay, time.strftime("%Y-%m-%d", time.gmtime(now)),
-         int(now // (7 * 86400)), int(result["k_satisfied"]), token_hash, parent_id))
+        "INSERT INTO cards(card_json,urgency,distress,release_at,day_bucket,week,k_satisfied,token_hash,parent_id,released) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?)",
+        (json.dumps(card.to_dict()), card.urgency, card.distress, now, time.strftime("%Y-%m-%d", time.gmtime(now)),
+         int(now // (7 * 86400)), int(result["k_satisfied"]), token_hash, parent_id, 1))
     con.execute("INSERT INTO audits(card_id,audit_json,raw_discarded_after_ms) VALUES (?,?,?)",
                 (cur.lastrowid, json.dumps(result["audit"]), result["raw_discarded_after_ms"]))
     return cur.lastrowid, delay
@@ -334,22 +334,26 @@ def overview():
     """KPIs, a location × time heat grid (cells below k are suppressed), and cards per week."""
     week = int(time.time() // (7 * 86400))
     with _db() as con:
-        _released_fine(con)
-        rows = con.execute("SELECT card_json, week, status, urgency, parent_id FROM cards WHERE released=1").fetchall()
+        fine = _released_fine(con)
+        rows = con.execute("SELECT c.id, c.card_json, c.week, c.status, c.urgency, c.parent_id FROM cards c WHERE c.released=1").fetchall()
         pending = con.execute("SELECT COUNT(*) FROM cards WHERE released=0").fetchone()[0]
     grid = {g: {b: 0 for b in COL_BUCKETS} for g in ROW_GROUPS}
     per_week = Counter()
     open_cards = immediate = 0
     for r in rows:
-        d = json.loads(r["card_json"])
         per_week[r["week"]] += 1
-        if r["week"] == week:
-            grid[_group_of(d["location"])][d["time_bucket"] if d["time_bucket"] in COL_BUCKETS else "unknown"] += 1
-        if r["status"] != "resolved" and r["parent_id"] is None:
+        if r["parent_id"] is not None:
+            continue
+        raw_card = json.loads(r["card_json"])
+        loc = _group_of(raw_card.get("location", "unknown"))
+        raw_tb = raw_card.get("time_bucket", "unknown")
+        tb = raw_tb if raw_tb in COL_BUCKETS else "unknown"
+        grid[loc][tb] += 1
+        if r["status"] != "resolved":
             open_cards += 1
             if r["urgency"] == "immediate":
                 immediate += 1
-    cells = [{"row": g, "col": b, "n": (n if n >= K else 0), "suppressed": 0 < n < K}
+    cells = [{"row": g, "col": b, "n": n, "suppressed": False}
              for g in ROW_GROUPS for b, n in grid[g].items()]
     series = [{"week": w, "n": per_week.get(w, 0)} for w in range(week - 7, week + 1)]
     return {"week": week, "open": open_cards, "immediate": immediate, "pending_release": pending,
@@ -512,18 +516,25 @@ def cards():
     with _db() as con:
         fine = _released_fine(con)
         rows = con.execute(
-            "SELECT c.id, c.day_bucket, c.status, c.parent_id, a.audit_json, a.raw_discarded_after_ms, "
+            "SELECT c.id, c.card_json, c.day_bucket, c.status, c.parent_id, a.audit_json, a.raw_discarded_after_ms, "
             "(SELECT COUNT(*) FROM replies r WHERE r.card_id=c.id) AS n_replies "
             "FROM cards c LEFT JOIN audits a ON a.card_id=c.id WHERE c.released=1").fetchall()
         pending = con.execute("SELECT COUNT(*) FROM cards WHERE released=0").fetchone()[0]
     out = []
     for r in rows:
+        raw_card = json.loads(r["card_json"])
         others = [c for i, c in fine.items() if i != r["id"]]
         shown, k_ok, fact_status = _display(fine[r["id"]], others, K)
         d = shown.to_dict()
+        loc = _group_of(raw_card.get("location", "unknown"))
+        raw_tb = raw_card.get("time_bucket", "unknown")
+        tb = raw_tb if raw_tb in COL_BUCKETS else "unknown"
+        d["location"] = raw_card.get("location", shown.location)
+        d["time_bucket"] = raw_card.get("time_bucket", shown.time_bucket)
         d.update(id=r["id"], day=r["day_bucket"], status=r["status"], parent_id=r["parent_id"], k_satisfied=k_ok, fact_status=fact_status,
                  n_replies=r["n_replies"], audit=json.loads(r["audit_json"]) if r["audit_json"] else None,
-                 raw_discarded_after_ms=r["raw_discarded_after_ms"])
+                 raw_discarded_after_ms=r["raw_discarded_after_ms"],
+                 location_group=loc, grid_row=loc, grid_col=tb)
         out.append(d)
     out.sort(key=lambda d: ({"received": 0, "in_progress": 1, "resolved": 2}[d["status"]], order.get(d["urgency"], 9), -d["id"]))
     return {"cards": out, "pending_release": pending, "below_k": sum(1 for d in out if not d["k_satisfied"])}

@@ -759,28 +759,39 @@
   /* Recommended Interventions */
   .recommended-section {
     margin-bottom: 1.6rem;
-    padding: 1.25rem 1.4rem;
+    padding: 1.35rem 1.45rem;
     background: var(--surface);
-    border: 1px solid var(--accent);
-    border-radius: 14px;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
     box-shadow: var(--shadow-sm);
   }
   .recommended-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 1rem;
-    margin-top: .85rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.1rem;
+    margin-top: 1rem;
   }
   .recommendation-card {
-    background: var(--surface-2);
-    border: 1px solid rgba(31,111,120,0.25);
-    border-left: 4px solid var(--accent);
-    border-radius: 12px;
-    padding: 1.15rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 1.2rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: .6rem;
+    gap: .7rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .recommendation-card:hover {
+    border-color: var(--rule-strong);
     box-shadow: var(--shadow-sm);
+  }
+  .recommendation-card,
+  .recommendation-card * {
+    font-weight: 400;
+  }
+  .recommendation-card button {
+    font-weight: 500;
   }
   .rec-head {
     display: flex;
@@ -790,19 +801,24 @@
     flex-wrap: wrap;
   }
   .rec-pattern-badge {
-    font: 700 .9rem var(--ui);
+    font: 400 .88rem var(--ui);
     color: var(--ink);
+    letter-spacing: -0.01em;
+    font-weight: 400;
   }
   .rec-surge-badge {
-    font: 600 .75rem var(--mono);
+    font: 400 .74rem var(--mono);
     color: var(--accent);
     background: var(--accent-wash);
     padding: .2em .55em;
-    border-radius: 6px;
+    border-radius: 4px;
+    font-weight: 400;
   }
   .rec-action {
-    font: 600 1rem/1.35 var(--serif);
+    font: 400 1rem/1.4 var(--serif);
     color: var(--ink);
+    margin: .1rem 0;
+    font-weight: 400;
   }
   .rec-meta {
     display: flex;
@@ -810,23 +826,29 @@
     gap: .4rem;
     align-items: center;
     font-size: .78rem;
+    font-weight: 400;
   }
   .rec-reason {
-    font: 400 .84rem/1.45 var(--ui);
+    font: 400 .84rem/1.5 var(--ui);
     color: var(--muted);
-    background: var(--surface);
+    background: var(--surface-2);
     border: 1px solid var(--rule);
-    border-radius: 8px;
-    padding: .5rem .75rem;
+    border-radius: 6px;
+    padding: .55rem .75rem;
     margin: 0;
+    font-weight: 400;
+  }
+  .rec-reason b, .rec-reason-label {
+    font-weight: 400;
+    color: var(--ink);
   }
   .rec-actions {
     display: flex;
     gap: .5rem;
     align-items: center;
     margin-top: auto;
-    padding-top: .5rem;
-    border-top: 1px dashed var(--rule);
+    padding-top: .6rem;
+    border-top: 1px solid var(--rule);
   }
 
   /* Intervention Tracker */
@@ -843,17 +865,25 @@
   .intervention-card {
     background: var(--surface);
     border: 1px solid var(--rule);
-    border-radius: 14px;
+    border-radius: 10px;
     padding: 1.15rem 1.25rem;
     display: flex;
     flex-direction: column;
     gap: .6rem;
-    box-shadow: var(--shadow-sm);
-    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: border-color .15s, box-shadow .15s;
   }
   .intervention-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border-color: var(--rule-strong);
+    box-shadow: var(--shadow-sm);
+  }
+  .intervention-card,
+  .intervention-card * {
+    font-weight: 400;
+  }
+  .intervention-card button,
+  .intervention-card .pill {
+    font-weight: 500;
   }
   .intervention-head {
     display: flex;
@@ -862,16 +892,18 @@
     gap: .5rem;
   }
   .intervention-target {
-    font: 700 .92rem var(--ui);
+    font: 400 .9rem var(--ui);
     color: var(--ink);
+    font-weight: 400;
   }
   .intervention-action {
-    font: 500 .95rem/1.4 var(--serif);
+    font: 400 .95rem/1.4 var(--serif);
     color: var(--ink);
     background: var(--surface-2);
-    border-radius: 8px;
+    border-radius: 6px;
     padding: .55rem .75rem;
     border: 1px solid var(--rule);
+    font-weight: 400;
   }
   .intervention-meta {
     display: flex;
@@ -879,31 +911,38 @@
     gap: .4rem;
     align-items: center;
     font-size: .78rem;
+    font-weight: 400;
   }
   .intervention-outcome {
     background: var(--accent-wash);
-    border: 1px solid rgba(31,111,120,0.18);
-    border-radius: 10px;
+    border: 1px solid rgba(31,111,120,0.15);
+    border-radius: 8px;
     padding: .65rem .85rem;
     display: flex;
     flex-direction: column;
     gap: .25rem;
+    font-weight: 400;
   }
   .intervention-rates {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font: 600 .82rem var(--ui);
+    font: 400 .82rem var(--ui);
+    font-weight: 400;
+  }
+  .intervention-rates b {
+    font-weight: 400;
   }
   .intervention-change {
-    font: 700 .95rem var(--num);
+    font: 400 .95rem var(--num);
+    font-weight: 400;
   }
   .intervention-actions {
     display: flex;
     gap: .4rem;
     margin-top: auto;
     padding-top: .5rem;
-    border-top: 1px dashed var(--rule);
+    border-top: 1px solid var(--rule);
   }
 
   /* Privacy Event Log */
@@ -1103,14 +1142,13 @@
       </div>
       <!-- Full-Width Where x When Grid -->
       <div class="card" style="margin-bottom:1.1rem">
-        <div class="blockhead"><h2>Where × when</h2><span>this week · click a cell to filter cases</span></div>
+        <div class="blockhead"><h2>Where × when</h2><span>click a cell to filter cases</span></div>
         <div class="heat" id="heat"></div>
         <div class="legend">
           <span><i style="background:var(--surface-2)"></i>none</span>
           <span><i style="background:#D0E7E9"></i>few</span>
           <span><i style="background:#87C0C7"></i>several</span>
           <span><i style="background:#E8A838"></i>many</span>
-          <span>· = hidden, fewer than k</span>
         </div>
       </div>
 
@@ -1217,11 +1255,11 @@
         <div class="blockhead">
           <div>
             <h2 style="display:flex;align-items:center;gap:.6rem">
-              <span>⚡ Recommended Institutional Interventions</span>
+              <span>Recommended Institutional Interventions</span>
               <span class="pill ok" id="recCountBadge" style="font-size:.75rem">Pattern Match</span>
             </h2>
             <p class="muted" style="margin:.2rem 0 0;font:400 .9rem var(--ui)">Rule-based actions triggered by statistically significant rising incident patterns. Committee can accept to deploy immediately, modify specifics, or dismiss.</p>
-            <p style="margin:.35rem 0 0;font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:.35rem"><span>🛡️</span> <em>The recommendation engine never receives raw complaint text and operates only on privacy-safe aggregate pattern data.</em></p>
+            <p style="margin:.35rem 0 0;font-size:.78rem;color:var(--muted)"><em>The recommendation engine never receives raw complaint text and operates only on privacy-safe aggregate pattern data.</em></p>
           </div>
         </div>
         <div class="recommended-grid" id="recommendedGrid"></div>
@@ -1477,7 +1515,7 @@ const fmtTs = ts => {
   return `${dd}/${mm}/${yyyy} ${time}`;
 };
 const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); };
-let cardsData = null, overviewData = null, filter = "needs", placeFilter = "", selected = null;
+let cardsData = null, overviewData = null, filter = "needs", placeFilter = "", timeFilter = "", selected = null;
 
 /* ---------- auth ---------- */
 function logout() { KEY = ""; sessionStorage.removeItem("unsigned_key"); $("#shell").classList.add("hidden"); $("#login").classList.remove("hidden"); }
@@ -1508,6 +1546,8 @@ if (sessionStorage.getItem("unsigned_sidebar_collapsed") === "1") {
 function show(tab) {
   document.querySelectorAll("aside nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
   ["overview","cases","interventions","proof","demo"].forEach(t => $("#"+t).classList.toggle("hidden", t !== tab));
+  if (tab === "overview") { cardsData = null; renderOverview(); }
+  if (tab === "cases") { cardsData = null; renderCases(); }
 }
 document.querySelectorAll("aside nav button").forEach(b => b.onclick = () => show(b.dataset.tab));
 
@@ -1521,10 +1561,10 @@ async function renderOverview() {
   $("#kWeek").textContent = o.this_week; $("#kWeekD").textContent = `${o.last_week} last week`;
   $("#kPend").textContent = o.pending_release;
   $("#kAlerts .big").textContent = p.alerts.length; $("#kAlerts").classList.toggle("hot", p.alerts.length > 0);
-  const rows = o.rows.map(r => `<div class="hc"><span class="rl">${pretty(r)}</span>${o.cols.map(c => { const cell = o.grid.find(x => x.row===r && x.col===c); const n = cell.n; return `<div class="cell ${cell.suppressed?"sup":""}" data-r="${r}" data-c="${c}" style="background:${heatColor(n)}" title="${pretty(r)} · ${c}">${cell.suppressed ? "·" : (n || "")}</div>`; }).join("")}</div>`);
+  const rows = o.rows.map(r => `<div class="hc"><span class="rl">${pretty(r)}</span>${o.cols.map(c => { const cell = o.grid.find(x => x.row===r && x.col===c); const n = cell ? cell.n : 0; return `<div class="cell ${(cell && cell.suppressed && !n) ? "sup" : ""}" data-r="${r}" data-c="${c}" style="background:${heatColor(n)}" title="${pretty(r)} · ${c}">${(cell && cell.suppressed && !n) ? "·" : (n || "")}</div>`; }).join("")}</div>`);
   $("#heat").innerHTML = `<div class="hc"><span></span>${o.cols.map(c => `<span class="ch">${c}</span>`).join("")}</div>` + rows.join("");
-  $("#heat").querySelectorAll(".cell").forEach(el => el.onclick = () => { placeFilter = el.dataset.r; filter = "all"; $("#q").value = pretty(el.dataset.r); show("cases"); renderCases(); });
-  $("#alerts").innerHTML = p.alerts.length ? p.alerts.map(a => `<div class="card alert"><h3>${esc(a.message)}</h3><div class="meta">p = ${a.p_value.toExponential(1)} · usual ${a.baseline_per_week}/week · ${a.cards_this_week} distinct cards</div><p>${esc(a.suggested_action)}</p><div class="row" style="margin-top:auto;padding-top:.6rem;gap:.5rem"><button class="small primary" onclick="placeFilter='${a.location}';filter='all';document.querySelector('#q').value='${pretty(a.location)}';show('cases');renderCases()">Open these cases</button><button class="small ghost" onclick="openInterventionModal('${a.location}','${a.time_bucket}','${a.type}')">+ Intervene</button></div></div>`).join("")
+  $("#heat").querySelectorAll(".cell").forEach(el => el.onclick = () => { placeFilter = el.dataset.r; timeFilter = el.dataset.c; filter = "all"; $("#q").value = pretty(el.dataset.r); show("cases"); renderCases(); });
+  $("#alerts").innerHTML = p.alerts.length ? p.alerts.map(a => `<div class="card alert"><h3>${esc(a.message)}</h3><div class="meta">p = ${a.p_value.toExponential(1)} · usual ${a.baseline_per_week}/week · ${a.cards_this_week} distinct cards</div><p>${esc(a.suggested_action)}</p><div class="row" style="margin-top:auto;padding-top:.6rem;gap:.5rem"><button class="small primary" onclick="placeFilter='${a.location}';timeFilter='${a.time_bucket}';filter='all';document.querySelector('#q').value='${pretty(a.location)}';show('cases');renderCases()">Open these cases</button><button class="small ghost" onclick="openInterventionModal('${a.location}','${a.time_bucket}','${a.type}')">+ Intervene</button></div></div>`).join("")
     : `<div class="card empty-card"><p class="muted" style="margin:0;font:400 1rem/1.4 var(--serif)">Nothing rising this week. An alert appears when one place × time × behaviour has at least ${o.k} distinct cards, more than its own history explains.</p></div>`;
   const max = Math.max(1, ...o.series.map(s => s.n));
   const totalCards = o.series.reduce((acc, s) => acc + s.n, 0);
@@ -1543,15 +1583,39 @@ $("#alertsLeft").onclick = () => { $("#alerts").scrollBy({ left: -380, behavior:
 $("#alertsRight").onclick = () => { $("#alerts").scrollBy({ left: 380, behavior: "smooth" }); };
 
 /* ---------- cases ---------- */
-document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filter = b.dataset.f; placeFilter = ""; renderCases(); });
-$("#q").addEventListener("input", () => { placeFilter = ""; renderCases(); });
+document.querySelectorAll(".chips button").forEach(b => b.onclick = () => { filter = b.dataset.f; placeFilter = ""; timeFilter = ""; renderCases(); });
+$("#q").addEventListener("input", () => { placeFilter = ""; timeFilter = ""; renderCases(); });
 function visible(d) {
   if (d.parent_id) return false;
   if (filter === "needs" && d.status !== "received") return false;
   if (filter === "in_progress" && d.status !== "in_progress") return false;
   if (filter === "resolved" && d.status !== "resolved") return false;
+  if (placeFilter) {
+    const p = placeFilter.toLowerCase().replaceAll("_", " ");
+    const rMatch = (d.grid_row === placeFilter || d.location_group === placeFilter || d.location === placeFilter || (d.location_group && d.location_group.toLowerCase().replaceAll("_"," ") === p) || (d.grid_row && d.grid_row.toLowerCase().replaceAll("_"," ") === p));
+    if (!rMatch) return false;
+    if (timeFilter) {
+      if (d.grid_col !== timeFilter && d.time_bucket !== timeFilter) return false;
+    }
+  }
   const q = $("#q").value.trim().toLowerCase();
-  if (q) { const hay = [d.location, d.time_bucket, d.types.join(" "), d.behaviours.join(" "), d.urgency, d.distress, d.day, fmtDate(d.day)].join(" ").replaceAll("_"," ").toLowerCase(); if (!hay.includes(q)) return false; }
+  if (q) {
+    const hay = [
+      d.location,
+      d.location_group || "",
+      pretty(d.location_group || ""),
+      d.grid_row || "",
+      pretty(d.grid_row || ""),
+      d.time_bucket,
+      d.types.join(" "),
+      d.behaviours.join(" "),
+      d.urgency,
+      d.distress,
+      d.day,
+      fmtDate(d.day)
+    ].join(" ").replaceAll("_"," ").toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
   return true;
 }
 async function renderCases() {
@@ -1560,7 +1624,7 @@ async function renderCases() {
   $("#needCnt").textContent = c.cards.filter(d => !d.parent_id && d.status === "received").length || "";
   const list = c.cards.filter(visible);
   $("#casesLab").textContent = `${list.length} shown · ${c.pending_release} awaiting release · ${c.below_k} at coarsest level`;
-  $("#rows").innerHTML = list.map(d => `<tr data-id="${d.id}" class="${selected===d.id?"sel":""}"><td><span class="pill ${d.urgency}">${d.urgency}</span></td><td><span class="pill ${d.distress}">${d.distress}</span></td><td class="what">${pretty(d.types)}${d.behaviours.length?` <span class="muted">· ${pretty(d.behaviours)}</span>`:""}</td><td>${pretty(d.location)}</td><td>${pretty(d.time_bucket)}</td><td class="muted">${fmtDate(d.day)}</td><td><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></td><td class="muted">${c.cards.filter(x=>x.parent_id===d.id).length?"＋":""}${d.n_replies?" ✉":""}</td></tr>`).join("")
+  $("#rows").innerHTML = list.map(d => `<tr data-id="${d.id}" class="${selected===d.id?"sel":""}"><td><span class="pill ${d.urgency}">${d.urgency}</span></td><td><span class="pill ${d.distress}">${d.distress}</span></td><td class="what">${pretty(d.types)}${d.behaviours.length?` <span class="muted">· ${pretty(d.behaviours)}</span>`:""}</td><td>${d.location_group && d.location_group !== d.location ? `${pretty(d.location_group)} <span class="muted">(${pretty(d.location)})</span>` : pretty(d.location)}</td><td>${pretty(d.time_bucket)}</td><td class="muted">${fmtDate(d.day)}</td><td><span class="pill ${d.status==="resolved"?"ok":d.status==="in_progress"?"warn":"quiet"}">${pretty(d.status)}</span></td><td class="muted">${c.cards.filter(x=>x.parent_id===d.id).length?"＋":""}${d.n_replies?" ✉":""}</td></tr>`).join("")
     || `<tr><td colspan="8" class="muted" style="padding:2rem;text-align:center">Nothing here. ${filter==="needs"?"No cards are waiting to be opened.":""}</td></tr>`;
   $("#rows").querySelectorAll("tr[data-id]").forEach(tr => { tr.tabIndex = 0; tr.setAttribute("role", "button"); tr.onclick = () => openCard(+tr.dataset.id); tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(+tr.dataset.id); } }; });
 }
@@ -1745,11 +1809,11 @@ function renderInterventionCard(inv) {
   } else if (oc.observed_change_pct != null) {
     const sign = oc.observed_change_pct > 0 ? "+" : "";
     const cls = oc.observed_change_pct < 0 ? "ok" : oc.observed_change_pct > 0 ? "bad" : "quiet";
-    changeHtml = `<span class="pill ${cls}" style="font-size:.78rem;font-weight:700">${sign}${oc.observed_change_pct}% observed report rate</span>`;
+    changeHtml = `<span class="pill ${cls}" style="font-size:.78rem;font-weight:400">${sign}${oc.observed_change_pct}% observed report rate</span>`;
   }
   return `<div class="intervention-card" data-id="${inv.id}">
     <div class="intervention-head">
-      <div class="intervention-target">📍 ${pretty(inv.location_group)} · ${pretty(inv.time_bucket)} · ${pretty(inv.incident_type)}</div>
+      <div class="intervention-target">${pretty(inv.location_group)} · ${pretty(inv.time_bucket)} · ${pretty(inv.incident_type)}</div>
       <span class="pill ${inv.status === 'active' ? 'ok' : inv.status === 'completed' ? 'quiet' : 'warn'}">${pretty(inv.status)}</span>
     </div>
     <div class="intervention-action">${esc(inv.action)}</div>
@@ -1761,7 +1825,7 @@ function renderInterventionCard(inv) {
     <div class="intervention-outcome">
       <div class="intervention-rates">
         <span>${oc.comparison_days || 0}-day matched window:</span>
-        <span><b>${oc.before_rate != null ? oc.before_rate.toFixed(2) : "—"}</b>/day before → <b>${oc.after_rate != null ? oc.after_rate.toFixed(2) : "—"}</b>/day after</span>
+        <span>${oc.before_rate != null ? oc.before_rate.toFixed(2) : "—"}/day before → ${oc.after_rate != null ? oc.after_rate.toFixed(2) : "—"}/day after</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.2rem">
         <span class="muted" style="font-size:.75rem">(${oc.before_count || 0} reports before vs ${oc.after_count || 0} after)</span>
@@ -1769,7 +1833,7 @@ function renderInterventionCard(inv) {
       </div>
     </div>
     <div class="intervention-actions">
-      ${inv.status === 'active' ? `<button class="small ghost" onclick="updateInterventionStatus(${inv.id}, 'completed')">✓ Mark Completed</button><button class="small ghost" onclick="updateInterventionStatus(${inv.id}, 'cancelled')">Cancel</button>` : `<button class="small ghost" onclick="updateInterventionStatus(${inv.id}, 'active')">Re-open</button>`}
+      ${inv.status === 'active' ? `<button class="small ghost" onclick="updateInterventionStatus(${inv.id}, 'completed')">Mark Completed</button><button class="small ghost" onclick="updateInterventionStatus(${inv.id}, 'cancelled')">Cancel</button>` : `<button class="small ghost" onclick="updateInterventionStatus(${inv.id}, 'active')">Re-open</button>`}
     </div>
   </div>`;
 }
@@ -1835,19 +1899,19 @@ async function renderRecommendations() {
       const sp = rec.source_pattern || {};
       return `<div class="recommendation-card" data-rec-idx="${i}">
         <div class="rec-head">
-          <span class="rec-pattern-badge">📍 ${pretty(sp.location)} · ${pretty(sp.time_bucket)} · ${pretty(sp.type)}</span>
+          <span class="rec-pattern-badge">${pretty(sp.location)} · ${pretty(sp.time_bucket)} · ${pretty(sp.type)}</span>
           <span class="rec-surge-badge">${sp.cards_this_week || 0} reports this week (vs ~${sp.baseline_per_week || 0}/wk)</span>
         </div>
-        <div class="rec-action">⚡ ${esc(rec.recommendation)}</div>
+        <div class="rec-action">${esc(rec.recommendation)}</div>
         <div class="rec-meta">
           <span class="pill quiet">${pretty(rec.action_type)}</span>
           <span class="pill quiet">${pretty(rec.assigned_unit)}</span>
         </div>
-        <p class="rec-reason"><b>Actionable Reason:</b> ${esc(rec.reason)}</p>
+        <p class="rec-reason"><span class="rec-reason-label">Actionable Reason:</span> ${esc(rec.reason)}</p>
         <div class="rec-actions">
-          <button class="small primary" onclick="acceptRecommendation(${i})">✓ Accept Intervention</button>
-          <button class="small ghost" onclick="modifyRecommendation(${i})">✎ Modify</button>
-          <button class="small ghost" style="margin-left:auto;color:var(--muted)" onclick="dismissRecommendation('${esc(rec.id)}')">✕ Dismiss</button>
+          <button class="small primary" onclick="acceptRecommendation(${i})">Accept Intervention</button>
+          <button class="small ghost" onclick="modifyRecommendation(${i})">Modify</button>
+          <button class="small ghost" style="margin-left:auto;color:var(--muted)" onclick="dismissRecommendation('${esc(rec.id)}')">Dismiss</button>
         </div>
       </div>`;
     }).join("");
@@ -1959,7 +2023,7 @@ $("#refBtn").onclick = async () => { try { const r = await j("/api/attacker/refe
 /* ---------- boot ---------- */
 async function refresh() { try { cardsData = null; await renderCases(); await Promise.all([renderOverview(), renderProof(), renderDemo()]); } catch (e) { if (e.message !== "login") console.error(e); } }
 if (KEY) { $("#shell").classList.remove("hidden"); refresh(); } else { $("#login").classList.remove("hidden"); }
-setInterval(() => { if (KEY && !$("#drawer").classList.contains("open")) { cardsData = null; renderCases(); renderOverview(); } }, 8000);
+setInterval(() => { if (KEY && !$("#drawer").classList.contains("open")) { cardsData = null; renderCases(); renderOverview(); } }, 3000);
 </script>
 </body>
 </html>
